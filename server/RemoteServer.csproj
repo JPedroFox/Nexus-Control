@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>RemoteServer</AssemblyName>
+    <RootNamespace>RemoteServer</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Parse de JSON entre C# e Java -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <!-- Controle de volume via API do Windows -->
+    <PackageReference Include="NAudio" Version="2.2.1" />
+  </ItemGroup>
+
+</Project>
