@@ -37,6 +37,12 @@ public class CommandBuilder {
         return "{\"cmd\":\"SCREENSHOT\"}";
     }
 
+    // ─── LIST PROCESSES ───────────────────────────────────────────────────────
+
+    public static String listProcesses() {
+        return "{\"cmd\":\"LIST_PROCESSES\"}";
+    }
+
     // ─── KILL PROCESS ─────────────────────────────────────────────────────────
 
     @SuppressWarnings("unused") // Reservado para uso futuro na UI

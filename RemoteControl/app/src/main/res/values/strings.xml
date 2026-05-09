@@ -4,34 +4,36 @@
     <string name="btn_connect">Conectar</string>
     <string name="btn_disconnect">Desconectar</string>
 
-    <!-- Adicionar ao res/values/strings.xml -->
-
     <!-- ScreenshotViewer -->
     <string name="loading">Carregando…</string>
     <string name="counter_placeholder">— / —</string>
     <string name="gesture_hint">Pinch para zoom • Arraste para navegar</string>
-
-    <!-- Formato: "Monitor 1 (Principal)  •  1920 × 1080px" -->
     <string name="screenshot_info">%1$s  •  %2$d × %3$dpx</string>
-
-    <!-- Formato: "1 / 2" -->
     <string name="screenshot_counter">%1$d / %2$d</string>
-
-    <!-- Fallback quando não há label -->
     <string name="monitor_default">Monitor %1$d</string>
-
-    <!-- Toasts e erros -->
     <string name="error_no_image">Erro: nenhuma imagem recebida</string>
     <string name="error_decode_image">Erro ao decodificar imagem</string>
     <string name="error_create_file">Erro ao criar arquivo na galeria</string>
     <string name="error_null_stream">Erro: stream de saída nulo</string>
     <string name="save_success">✅ %1$s salvo</string>
     <string name="error_save">Erro ao salvar: %1$s</string>
-
-    <!-- Content descriptions (acessibilidade) -->
     <string name="cd_close">Fechar</string>
     <string name="cd_save">Salvar na galeria</string>
     <string name="cd_prev">Monitor anterior</string>
     <string name="cd_next">Próximo monitor</string>
 
+    <!-- ProcessListActivity -->
+    <string name="title_processos">Processos</string>
+    <string name="search_hint">Buscar processo…</string>
+    <string name="no_processes">Nenhum processo encontrado</string>
+    <string name="btn_kill">Encerrar</string>
+    <string name="process_details">PID %1$d  •  %2$d MB</string>
+    <string name="kill_confirm_title">Encerrar processo</string>
+    <string name="kill_confirm_msg">Encerrar \"%1$s\"?</string>
+    <string name="kill_yes">Encerrar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="disconnected">Desconectado: %1$s</string>
+
+    <!-- MainActivity -->
+    <string name="btn_processos">⚙ Processos</string>
 </resources>

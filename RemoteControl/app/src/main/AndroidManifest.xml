@@ -31,6 +31,11 @@
             android:exported="false"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
 
+        <!-- Tela de gerenciamento de processos -->
+        <activity
+            android:name=".ProcessListActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

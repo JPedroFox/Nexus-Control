@@ -399,5 +399,18 @@
             </LinearLayout>
         </LinearLayout>
 
+
+        <!-- ── PROCESSOS ────────────────────────────────────────────────── -->
+        <Button
+            android:id="@+id/btnProcessos"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="@string/btn_processos"
+            android:backgroundTint="#1A1A2E"
+            android:textColor="#7986CB"
+            android:textStyle="bold"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"/>
+
     </LinearLayout>
 </ScrollView>

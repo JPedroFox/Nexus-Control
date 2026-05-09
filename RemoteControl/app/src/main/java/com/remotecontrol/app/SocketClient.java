@@ -51,7 +51,23 @@ public class SocketClient {
         void onDisconnected(String reason);
         void onMessageReceived(String json);
         void onScreenshotsReceived(List<ScreenshotCaptura> capturas);
+        void onProcessListReceived(List<ProcessInfo> processos);
         void onError(String message);
+    }
+
+    // Dados de um processo do Windows
+    public static class ProcessInfo {
+        public final String nome;
+        public final int    pid;
+        public final long   memoriaMb;
+        public final String janela;
+
+        public ProcessInfo(String nome, int pid, long memoriaMb, String janela) {
+            this.nome      = nome;
+            this.pid       = pid;
+            this.memoriaMb = memoriaMb;
+            this.janela    = janela;
+        }
     }
 
     private final Handler uiHandler = new Handler(Looper.getMainLooper());
@@ -62,12 +78,17 @@ public class SocketClient {
 
     private String serverIp;
     private int    serverPort;
-    private final SocketListener listener;
+    private SocketListener listener; // não-final: ProcessListActivity pode assumir temporariamente
 
     private volatile boolean shouldReconnect = false;
     private int reconnectTries = 0;
 
     public SocketClient(SocketListener listener) {
+        this.listener = listener;
+    }
+
+    /** Troca o listener em runtime — usado por ProcessListActivity */
+    public void setListener(SocketListener listener) {
         this.listener = listener;
     }
 
@@ -110,6 +131,8 @@ public class SocketClient {
 
                 if (msg.contains("\"capturas\"")) {
                     handleScreenshots(msg);
+                } else if (msg.contains("\"PROCESS_LIST\"")) {
+                    handleProcessList(msg);
                 } else {
                     uiHandler.post(() -> listener.onMessageReceived(msg));
                 }
@@ -150,6 +173,27 @@ public class SocketClient {
             uiHandler.post(() -> listener.onScreenshotsReceived(lista));
         } catch (Exception e) {
             Log.e(TAG, "Erro ao parsear screenshots: " + e.getMessage());
+        }
+    }
+
+    private void handleProcessList(String json) {
+        try {
+            JsonObject root      = JsonParser.parseString(json).getAsJsonObject();
+            JsonArray  processos = root.getAsJsonArray("processos");
+
+            List<ProcessInfo> lista = new ArrayList<>();
+            for (int i = 0; i < processos.size(); i++) {
+                JsonObject p = processos.get(i).getAsJsonObject();
+                lista.add(new ProcessInfo(
+                        p.get("nome").getAsString(),
+                        p.get("pid").getAsInt(),
+                        p.get("memoria_mb").getAsLong(),
+                        p.has("janela") ? p.get("janela").getAsString() : ""
+                ));
+            }
+            uiHandler.post(() -> listener.onProcessListReceived(lista));
+        } catch (Exception e) {
+            Log.e(TAG, "Erro ao parsear process list: " + e.getMessage());
         }
     }
 

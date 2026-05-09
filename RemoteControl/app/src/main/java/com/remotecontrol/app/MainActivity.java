@@ -26,10 +26,14 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
     private Button btnPlay, btnNext, btnPrev;
     private Button btnScreenshot;
     private Button btnLock, btnRestart, btnShutdown;
+    private Button btnProcessos;
 
     // ─── LÓGICA ───────────────────────────────────────────────────────────────
-    private SocketClient socketClient;
     private boolean isConnected = false;
+
+    // Exposto estaticamente para ProcessListActivity reutilizar a conexão
+    public static SocketClient socketClient;
+    public static MainActivity instance;
 
     // Campos estáticos para passar listas de imagens ao ScreenshotViewer
     // (Intent não suporta byte arrays grandes — TransactionTooLargeException)
@@ -44,6 +48,7 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
         bindViews();
         setupClickListeners();
 
+        instance     = this;
         socketClient = new SocketClient(this);
         setControlsEnabled(false);
     }
@@ -69,6 +74,7 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
         btnLock       = findViewById(R.id.btnLock);
         btnRestart    = findViewById(R.id.btnRestart);
         btnShutdown   = findViewById(R.id.btnShutdown);
+        btnProcessos  = findViewById(R.id.btnProcessos);
     }
 
     private void setupClickListeners() {
@@ -87,6 +93,7 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
         btnLock.setOnClickListener(v       -> send(CommandBuilder.lock()));
         btnRestart.setOnClickListener(v    -> confirmAndSend("Reiniciar o PC?",  CommandBuilder.restart()));
         btnShutdown.setOnClickListener(v   -> confirmAndSend("Desligar o PC?",   CommandBuilder.shutdown()));
+        btnProcessos.setOnClickListener(v  -> startActivity(new Intent(this, ProcessListActivity.class)));
     }
 
     // ─── CONEXÃO ──────────────────────────────────────────────────────────────
@@ -159,6 +166,11 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
     }
 
     @Override
+    public void onProcessListReceived(List<SocketClient.ProcessInfo> processos) {
+        // Roteado para ProcessListActivity via setListener() — não chega aqui em uso normal
+    }
+
+    @Override
     public void onError(String message) {
         setStatus("❌ " + message, false);
         showToast(message);
@@ -201,6 +213,7 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
         btnLock.setEnabled(enabled);
         btnRestart.setEnabled(enabled);
         btnShutdown.setEnabled(enabled);
+        btnProcessos.setEnabled(enabled);
     }
 
     private void showToast(String msg) {

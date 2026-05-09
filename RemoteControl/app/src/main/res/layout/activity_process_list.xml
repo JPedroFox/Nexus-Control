@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#121212">
+
+    <!-- Barra de busca -->
+    <EditText
+        android:id="@+id/etSearch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/search_hint"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#666666"
+        android:backgroundTint="#333333"
+        android:inputType="text"
+        android:imeOptions="actionSearch"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:drawableStart="@android:drawable/ic_menu_search"
+        android:drawableTint="#888888"
+        android:drawablePadding="8dp"
+        android:layout_margin="12dp"/>
+
+    <!-- Loading -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:visibility="gone"
+        android:layout_marginTop="32dp"/>
+
+    <!-- Estado vazio -->
+    <TextView
+        android:id="@+id/tvEmpty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/no_processes"
+        android:textColor="#666666"
+        android:gravity="center"
+        android:visibility="gone"
+        android:layout_marginTop="64dp"/>
+
+    <!-- Lista de processos -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingBottom="8dp"/>
+
+</LinearLayout>

@@ -24,11 +24,12 @@ namespace RemoteServer
 
                 return cmd switch
                 {
-                    "MEDIA"        => HandleMedia(json),
-                    "SISTEMA"      => HandleSistema(json),
-                    "SCREENSHOT"   => HandleScreenshot(),
-                    "KILL_PROCESS" => HandleKillProcess(json),
-                    _              => Error($"Comando desconhecido: {cmd}")
+                    "MEDIA"          => HandleMedia(json),
+                    "SISTEMA"        => HandleSistema(json),
+                    "SCREENSHOT"     => HandleScreenshot(),
+                    "KILL_PROCESS"   => HandleKillProcess(json),
+                    "LIST_PROCESSES" => HandleListProcesses(),
+                    _                => Error($"Comando desconhecido: {cmd}")
                 };
             }
             catch (Exception ex)
@@ -187,6 +188,50 @@ namespace RemoteServer
             foreach (ImageCodecInfo codec in ImageCodecInfo.GetImageEncoders())
                 if (codec.MimeType == "image/jpeg") return codec;
             throw new Exception("Encoder JPEG não encontrado");
+        }
+
+        // ─── LIST PROCESSES ───────────────────────────────────────────────────
+
+        private static string HandleListProcesses()
+        {
+            var processos = new System.Collections.Generic.List<ProcessInfo>();
+
+            foreach (Process p in Process.GetProcesses())
+            {
+                try
+                {
+                    if (string.IsNullOrEmpty(p.ProcessName)) continue;
+                    long memoriaMb = p.WorkingSet64 / (1024 * 1024);
+                    if (memoriaMb < 1) continue;
+
+                    processos.Add(new ProcessInfo
+                    {
+                        nome       = p.ProcessName,
+                        pid        = p.Id,
+                        memoria_mb = memoriaMb,
+                        janela     = p.MainWindowTitle
+                    });
+                }
+                catch { /* processo encerrou ou sem permissão */ }
+            }
+
+            // Ordena por memória decrescente
+            processos.Sort((a, b) => b.memoria_mb.CompareTo(a.memoria_mb));
+
+            return JsonConvert.SerializeObject(new
+            {
+                status    = "OK",
+                cmd_type  = "PROCESS_LIST",
+                processos = processos
+            });
+        }
+
+        private class ProcessInfo
+        {
+            public string nome       { get; set; } = "";
+            public int    pid        { get; set; }
+            public long   memoria_mb { get; set; }
+            public string janela     { get; set; } = "";
         }
 
         // ─── KILL PROCESS ─────────────────────────────────────────────────────
