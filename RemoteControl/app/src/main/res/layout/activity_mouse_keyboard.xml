@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -20,43 +21,50 @@
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:orientation="horizontal"
+        android:gravity="center_horizontal"
         android:layout_marginStart="12dp"
         android:layout_marginEnd="12dp"
         android:layout_marginBottom="8dp"
         tools:ignore="ButtonStyle"
-        xmlns:tools="http://schemas.android.com/tools">
+        >
 
         <Button
             android:id="@+id/btnLeftClick"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="2"
+            android:maxWidth="320dp"
             android:text="@string/btn_left_click"
             android:backgroundTint="#1A2A1A"
             android:textColor="#00E676"
             android:textStyle="bold"
-            android:layout_marginEnd="4dp"/>
+            android:layout_marginEnd="4dp"
+            tools:ignore="VisualLintButtonSize" />
 
         <Button
             android:id="@+id/btnDoubleClick"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:maxWidth="320dp"
             android:text="@string/btn_double_click"
             android:backgroundTint="#16161F"
             android:textColor="#BBBBBB"
             android:textSize="11sp"
-            android:layout_marginEnd="4dp"/>
+            android:layout_marginEnd="4dp"
+            tools:ignore="VisualLintButtonSize" />
 
         <Button
             android:id="@+id/btnRightClick"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="2"
+            android:maxWidth="320dp"
             android:text="@string/btn_right_click"
             android:backgroundTint="#2A1A1A"
             android:textColor="#FF5252"
-            android:textStyle="bold"/>
+            android:textStyle="bold"
+            tools:ignore="VisualLintButtonSize" />
 
     </LinearLayout>
 
@@ -65,13 +73,16 @@
         android:id="@+id/btnToggleKeyboard"
         android:layout_width="match_parent"
         android:layout_height="48dp"
+        android:maxWidth="320dp"
+        android:layout_gravity="center_horizontal"
         android:text="@string/btn_show_keyboard"
         android:backgroundTint="#16161F"
         android:textColor="#7986CB"
         android:textStyle="bold"
         android:layout_marginStart="12dp"
         android:layout_marginEnd="12dp"
-        android:layout_marginBottom="4dp"/>
+        android:layout_marginBottom="4dp"
+        tools:ignore="VisualLintButtonSize" />
 
     <!-- ── PAINEL DE TECLADO (escondido por padrão) ───────────────────────── -->
     <LinearLayout
@@ -90,7 +101,7 @@
             android:layout_height="44dp"
             android:hint="@string/keyboard_hint"
             android:textColor="#FFFFFF"
-            android:textColorHint="#666666"
+            android:textColorHint="#9E9E9E"
             android:backgroundTint="#222230"
             android:paddingStart="12dp"
             android:paddingEnd="12dp"
@@ -105,7 +116,7 @@
             android:orientation="horizontal"
             android:layout_marginBottom="4dp"
             tools:ignore="ButtonStyle"
-            xmlns:tools="http://schemas.android.com/tools">
+            >
 
             <Button android:id="@+id/keyEsc"
                 android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
@@ -135,7 +146,7 @@
             android:layout_height="44dp"
             android:orientation="horizontal"
             android:layout_marginBottom="4dp"
-            tools:ignore="ButtonStyle"
+            tools:ignore="ButtonStyle,RedundantNamespace"
             xmlns:tools="http://schemas.android.com/tools">
 
             <Button android:id="@+id/keyHome"
@@ -166,7 +177,7 @@
             android:layout_height="44dp"
             android:orientation="horizontal"
             android:layout_marginBottom="4dp"
-            tools:ignore="ButtonStyle"
+            tools:ignore="ButtonStyle,RedundantNamespace"
             xmlns:tools="http://schemas.android.com/tools">
 
             <Button android:id="@+id/keyLeft"
