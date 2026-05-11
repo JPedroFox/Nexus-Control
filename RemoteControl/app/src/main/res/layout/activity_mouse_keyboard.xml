@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#0A0A0F"
+    android:fitsSystemWindows="true">
+
+    <!-- ── TOUCHPAD ─────────────────────────────────────────────────────── -->
+    <com.remotecontrol.app.TouchpadView
+        android:id="@+id/touchpad"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_margin="12dp"/>
+
+    <!-- ── BOTÕES DE CLICK ───────────────────────────────────────────────── -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="8dp"
+        tools:ignore="ButtonStyle"
+        xmlns:tools="http://schemas.android.com/tools">
+
+        <Button
+            android:id="@+id/btnLeftClick"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="2"
+            android:text="@string/btn_left_click"
+            android:backgroundTint="#1A2A1A"
+            android:textColor="#00E676"
+            android:textStyle="bold"
+            android:layout_marginEnd="4dp"/>
+
+        <Button
+            android:id="@+id/btnDoubleClick"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="@string/btn_double_click"
+            android:backgroundTint="#16161F"
+            android:textColor="#BBBBBB"
+            android:textSize="11sp"
+            android:layout_marginEnd="4dp"/>
+
+        <Button
+            android:id="@+id/btnRightClick"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="2"
+            android:text="@string/btn_right_click"
+            android:backgroundTint="#2A1A1A"
+            android:textColor="#FF5252"
+            android:textStyle="bold"/>
+
+    </LinearLayout>
+
+    <!-- ── BOTÃO TECLADO ─────────────────────────────────────────────────── -->
+    <Button
+        android:id="@+id/btnToggleKeyboard"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="@string/btn_show_keyboard"
+        android:backgroundTint="#16161F"
+        android:textColor="#7986CB"
+        android:textStyle="bold"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="4dp"/>
+
+    <!-- ── PAINEL DE TECLADO (escondido por padrão) ───────────────────────── -->
+    <LinearLayout
+        android:id="@+id/layoutKeyboard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#111118"
+        android:padding="8dp"
+        android:visibility="gone">
+
+        <!-- Campo de entrada (oculto visualmente, captura o teclado) -->
+        <EditText
+            android:id="@+id/etKeyboard"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:hint="@string/keyboard_hint"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#666666"
+            android:backgroundTint="#222230"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:inputType="textNoSuggestions"
+            android:autofillHints="no"
+            android:layout_marginBottom="8dp"/>
+
+        <!-- Linha 1: Esc, Tab, Enter, Backspace -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:orientation="horizontal"
+            android:layout_marginBottom="4dp"
+            tools:ignore="ButtonStyle"
+            xmlns:tools="http://schemas.android.com/tools">
+
+            <Button android:id="@+id/keyEsc"
+                android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:text="@string/key_esc" android:textSize="11sp" android:backgroundTint="#2A0A0A"
+                android:textColor="#FF5252" android:layout_marginEnd="3dp"/>
+
+            <Button android:id="@+id/keyTab"
+                android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:text="@string/key_tab" android:textSize="11sp" android:backgroundTint="#16161F"
+                android:textColor="#BBBBBB" android:layout_marginEnd="3dp"/>
+
+            <Button android:id="@+id/keyEnter"
+                android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="2"
+                android:text="@string/key_enter" android:textSize="11sp" android:backgroundTint="#1A2A1A"
+                android:textColor="#00E676" android:layout_marginEnd="3dp"/>
+
+            <Button android:id="@+id/keyBackspace"
+                android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:text="@string/key_backspace" android:textSize="16sp" android:backgroundTint="#16161F"
+                android:textColor="#FFFFFF"/>
+
+        </LinearLayout>
+
+        <!-- Linha 2: setas + Home/End/Del -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:orientation="horizontal"
+            android:layout_marginBottom="4dp"
+            tools:ignore="ButtonStyle"
+            xmlns:tools="http://schemas.android.com/tools">
+
+            <Button android:id="@+id/keyHome"
+                android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:text="@string/key_home" android:textSize="14sp" android:backgroundTint="#16161F"
+                android:textColor="#BBBBBB" android:layout_marginEnd="3dp"/>
+
+            <Button android:id="@+id/keyUp"
+                android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:text="@string/key_up" android:textSize="14sp" android:backgroundTint="#16161F"
+                android:textColor="#FFFFFF" android:layout_marginEnd="3dp"/>
+
+            <Button android:id="@+id/keyEnd"
+                android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:text="@string/key_end" android:textSize="14sp" android:backgroundTint="#16161F"
+                android:textColor="#BBBBBB" android:layout_marginEnd="3dp"/>
+
+            <Button android:id="@+id/keyDelete"
+                android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:text="@string/key_delete" android:textSize="11sp" android:backgroundTint="#2A1A0A"
+                android:textColor="#FF9800"/>
+
+        </LinearLayout>
+
+        <!-- Linha 3: Left / Down / Right + PgUp/PgDn/Win -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:orientation="horizontal"
+            android:layout_marginBottom="4dp"
+            tools:ignore="ButtonStyle"
+            xmlns:tools="http://schemas.android.com/tools">
+
+            <Button android:id="@+id/keyLeft"
+                android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:text="@string/key_left" android:textSize="14sp" android:backgroundTint="#16161F"
+                android:textColor="#FFFFFF" android:layout_marginEnd="3dp"/>
+
+            <Button android:id="@+id/keyDown"
+                android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:text="@string/key_down" android:textSize="14sp" android:backgroundTint="#16161F"
+                android:textColor="#FFFFFF" android:layout_marginEnd="3dp"/>
+
+            <Button android:id="@+id/keyRight"
+                android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:text="@string/key_right" android:textSize="14sp" android:backgroundTint="#16161F"
+                android:textColor="#FFFFFF" android:layout_marginEnd="3dp"/>
+
+            <Button android:id="@+id/keyPageUp"
+                android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:text="@string/key_pageup" android:textSize="11sp" android:backgroundTint="#16161F"
+                android:textColor="#BBBBBB" android:layout_marginEnd="3dp"/>
+
+            <Button android:id="@+id/keyPageDown"
+                android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:text="@string/key_pagedown" android:textSize="11sp" android:backgroundTint="#16161F"
+                android:textColor="#BBBBBB" android:layout_marginEnd="3dp"/>
+
+            <Button android:id="@+id/keyWin"
+                android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:text="@string/key_win" android:textSize="16sp" android:backgroundTint="#1A1A2E"
+                android:textColor="#7986CB"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

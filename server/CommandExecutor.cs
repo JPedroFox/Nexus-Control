@@ -29,6 +29,8 @@ namespace RemoteServer
                     "SCREENSHOT"     => HandleScreenshot(),
                     "KILL_PROCESS"   => HandleKillProcess(json),
                     "LIST_PROCESSES" => HandleListProcesses(),
+                    "MOUSE"          => HandleMouse(json),
+                    "TECLADO"        => HandleTeclado(json),
                     _                => Error($"Comando desconhecido: {cmd}")
                 };
             }
@@ -190,50 +192,6 @@ namespace RemoteServer
             throw new Exception("Encoder JPEG não encontrado");
         }
 
-        // ─── LIST PROCESSES ───────────────────────────────────────────────────
-
-        private static string HandleListProcesses()
-        {
-            var processos = new System.Collections.Generic.List<ProcessInfo>();
-
-            foreach (Process p in Process.GetProcesses())
-            {
-                try
-                {
-                    if (string.IsNullOrEmpty(p.ProcessName)) continue;
-                    long memoriaMb = p.WorkingSet64 / (1024 * 1024);
-                    if (memoriaMb < 1) continue;
-
-                    processos.Add(new ProcessInfo
-                    {
-                        nome       = p.ProcessName,
-                        pid        = p.Id,
-                        memoria_mb = memoriaMb,
-                        janela     = p.MainWindowTitle
-                    });
-                }
-                catch { /* processo encerrou ou sem permissão */ }
-            }
-
-            // Ordena por memória decrescente
-            processos.Sort((a, b) => b.memoria_mb.CompareTo(a.memoria_mb));
-
-            return JsonConvert.SerializeObject(new
-            {
-                status    = "OK",
-                cmd_type  = "PROCESS_LIST",
-                processos = processos
-            });
-        }
-
-        private class ProcessInfo
-        {
-            public string nome       { get; set; } = "";
-            public int    pid        { get; set; }
-            public long   memoria_mb { get; set; }
-            public string janela     { get; set; } = "";
-        }
-
         // ─── KILL PROCESS ─────────────────────────────────────────────────────
 
         private static string HandleKillProcess(JObject json)
@@ -253,6 +211,47 @@ namespace RemoteServer
             return Ok($"{processos.Length} processo(s) '{nome}' encerrado(s)");
         }
 
+        // ─── LIST PROCESSES ───────────────────────────────────────────────────────
+
+        private static string HandleListProcesses()
+        {
+            Process[] processos = Process.GetProcesses();
+
+            var lista = new List<object>();
+            foreach (Process p in processos)
+            {
+                try
+                {
+                    lista.Add(new
+                    {
+                        pid  = p.Id,
+                        nome = p.ProcessName,
+                        mem  = p.WorkingSet64 / 1024  // KB
+                    });
+                }
+                catch
+                {
+                    // Alguns processos do sistema negam acesso — ignora silenciosamente
+                }
+            }
+
+            // Ordena por nome para facilitar leitura no celular
+            lista.Sort((a, b) =>
+                string.Compare(
+                    ((dynamic)a).nome,
+                    ((dynamic)b).nome,
+                    StringComparison.OrdinalIgnoreCase
+                )
+            );
+
+            return JsonConvert.SerializeObject(new
+            {
+                status    = "OK",
+                total     = lista.Count,
+                processos = lista
+            });
+        }
+
         // ─── HELPERS ──────────────────────────────────────────────────────────
 
         private static string Ok(string msg) =>
@@ -260,6 +259,138 @@ namespace RemoteServer
 
         private static string Error(string msg) =>
             JsonConvert.SerializeObject(new { status = "ERROR", msg });
+
+        // ─── MOUSE ────────────────────────────────────────────────────────────
+
+        private static string HandleMouse(JObject json)
+        {
+            string acao = json["acao"]?.ToString()?.ToUpper() ?? "";
+
+            switch (acao)
+            {
+                case "MOVE":
+                    int dx = json["dx"]?.ToObject<int>() ?? 0;
+                    int dy = json["dy"]?.ToObject<int>() ?? 0;
+                    SendMouseInput(dx, dy, 0, MOUSEEVENTF_MOVE);
+                    return Ok("Mouse movido");
+
+                case "LEFT_DOWN":
+                    SendMouseInput(0, 0, 0, MOUSEEVENTF_LEFTDOWN);
+                    return Ok("Botão esquerdo pressionado");
+
+                case "LEFT_UP":
+                    SendMouseInput(0, 0, 0, MOUSEEVENTF_LEFTUP);
+                    return Ok("Botão esquerdo solto");
+
+                case "LEFT_CLICK":
+                    SendMouseInput(0, 0, 0, MOUSEEVENTF_LEFTDOWN);
+                    SendMouseInput(0, 0, 0, MOUSEEVENTF_LEFTUP);
+                    return Ok("Click esquerdo");
+
+                case "RIGHT_CLICK":
+                    SendMouseInput(0, 0, 0, MOUSEEVENTF_RIGHTDOWN);
+                    SendMouseInput(0, 0, 0, MOUSEEVENTF_RIGHTUP);
+                    return Ok("Click direito");
+
+                case "DOUBLE_CLICK":
+                    SendMouseInput(0, 0, 0, MOUSEEVENTF_LEFTDOWN);
+                    SendMouseInput(0, 0, 0, MOUSEEVENTF_LEFTUP);
+                    SendMouseInput(0, 0, 0, MOUSEEVENTF_LEFTDOWN);
+                    SendMouseInput(0, 0, 0, MOUSEEVENTF_LEFTUP);
+                    return Ok("Duplo click");
+
+                case "SCROLL":
+                    int delta = json["delta"]?.ToObject<int>() ?? 0;
+                    // WHEEL_DELTA = 120 por notch padrão
+                    SendMouseInput(0, 0, (uint)(delta * 120), MOUSEEVENTF_WHEEL);
+                    return Ok("Scroll enviado");
+
+                default:
+                    return Error($"Ação de mouse desconhecida: {acao}");
+            }
+        }
+
+        private static void SendMouseInput(int dx, int dy, uint data, uint flags)
+        {
+            INPUT[] inputs = new INPUT[1];
+            inputs[0].type = INPUT_MOUSE;
+            inputs[0].U.mi.dx       = dx;
+            inputs[0].U.mi.dy       = dy;
+            inputs[0].U.mi.mouseData = data;
+            inputs[0].U.mi.dwFlags  = flags;
+            SendInput(1, inputs, Marshal.SizeOf<INPUT>());
+        }
+
+        // ─── TECLADO ──────────────────────────────────────────────────────────
+
+        private static string HandleTeclado(JObject json)
+        {
+            // Modo texto: digita uma string caractere a caractere via Unicode
+            string? texto = json["texto"]?.ToString();
+            if (texto != null)
+            {
+                foreach (char c in texto)
+                    SendUnicodeChar(c);
+                return Ok($"Texto digitado: {texto}");
+            }
+
+            // Modo tecla especial: usa virtual key code
+            string tecla = json["tecla"]?.ToString()?.ToUpper() ?? "";
+            if (!TeclaEspecial.TryGetValue(tecla, out ushort vk))
+                return Error($"Tecla desconhecida: {tecla}");
+
+            SendVirtualKey(vk);
+            return Ok($"Tecla enviada: {tecla}");
+        }
+
+        private static void SendUnicodeChar(char c)
+        {
+            INPUT[] inputs = new INPUT[2];
+
+            // Key down
+            inputs[0].type         = INPUT_KEYBOARD;
+            inputs[0].U.ki.wScan   = c;
+            inputs[0].U.ki.dwFlags = KEYEVENTF_UNICODE;
+
+            // Key up
+            inputs[1].type         = INPUT_KEYBOARD;
+            inputs[1].U.ki.wScan   = c;
+            inputs[1].U.ki.dwFlags = KEYEVENTF_UNICODE | KEYEVENTF_KEYUP;
+
+            SendInput(2, inputs, Marshal.SizeOf<INPUT>());
+        }
+
+        private static void SendVirtualKey(ushort vk)
+        {
+            INPUT[] inputs = new INPUT[2];
+            inputs[0].type       = INPUT_KEYBOARD;
+            inputs[0].U.ki.wVk   = vk;
+            inputs[1].type       = INPUT_KEYBOARD;
+            inputs[1].U.ki.wVk   = vk;
+            inputs[1].U.ki.dwFlags = KEYEVENTF_KEYUP;
+            SendInput(2, inputs, Marshal.SizeOf<INPUT>());
+        }
+
+        // Mapa de teclas especiais
+        private static readonly Dictionary<string, ushort> TeclaEspecial = new()
+        {
+            ["ENTER"]     = 0x0D,
+            ["BACKSPACE"] = 0x08,
+            ["TAB"]       = 0x09,
+            ["ESC"]       = 0x1B,
+            ["SPACE"]     = 0x20,
+            ["UP"]        = 0x26,
+            ["DOWN"]      = 0x28,
+            ["LEFT"]      = 0x25,
+            ["RIGHT"]     = 0x27,
+            ["HOME"]      = 0x24,
+            ["END"]       = 0x23,
+            ["DELETE"]    = 0x2E,
+            ["PAGEUP"]    = 0x21,
+            ["PAGEDOWN"]  = 0x22,
+            ["WIN"]       = 0x5B,
+            ["COPY"]      = 0x43, // Ctrl+C precisaria de combo — simplificado
+        };
 
         // ─── WIN32 API ────────────────────────────────────────────────────────
 
@@ -269,11 +400,61 @@ namespace RemoteServer
         [DllImport("user32.dll")]
         private static extern bool LockWorkStation();
 
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern uint SendInput(uint nInputs, INPUT[] pInputs, int cbSize);
+
         private const byte VK_MEDIA_PLAY_PAUSE   = 0xB3;
         private const byte VK_MEDIA_NEXT_TRACK   = 0xB0;
         private const byte VK_MEDIA_PREV_TRACK   = 0xB1;
         private const uint KEYEVENTF_EXTENDEDKEY = 0x01;
         private const uint KEYEVENTF_KEYUP       = 0x02;
+        private const uint KEYEVENTF_UNICODE     = 0x04;
+
+        // SendInput: tipo de evento
+        private const uint INPUT_MOUSE    = 0;
+        private const uint INPUT_KEYBOARD = 1;
+
+        // Mouse flags
+        private const uint MOUSEEVENTF_MOVE      = 0x0001;
+        private const uint MOUSEEVENTF_LEFTDOWN  = 0x0002;
+        private const uint MOUSEEVENTF_LEFTUP    = 0x0004;
+        private const uint MOUSEEVENTF_RIGHTDOWN = 0x0008;
+        private const uint MOUSEEVENTF_RIGHTUP   = 0x0010;
+        private const uint MOUSEEVENTF_WHEEL     = 0x0800;
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct MOUSEINPUT
+        {
+            public int    dx, dy;
+            public uint   mouseData;
+            public uint   dwFlags;
+            public uint   time;
+            public IntPtr dwExtraInfo;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct KEYBDINPUT
+        {
+            public ushort wVk;
+            public ushort wScan;
+            public uint   dwFlags;
+            public uint   time;
+            public IntPtr dwExtraInfo;
+        }
+
+        [StructLayout(LayoutKind.Explicit)]
+        private struct InputUnion
+        {
+            [FieldOffset(0)] public MOUSEINPUT  mi;
+            [FieldOffset(0)] public KEYBDINPUT  ki;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct INPUT
+        {
+            public uint       type;
+            public InputUnion U;
+        }
 
         private static void SendMediaKey(byte key)
         {

@@ -36,6 +36,11 @@
             android:name=".ProcessListActivity"
             android:exported="false" />
 
+        <!-- Mouse e teclado remoto -->
+        <activity
+            android:name=".MouseKeyboardActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

@@ -25,13 +25,10 @@ public class ProcessAdapter extends RecyclerView.Adapter<ProcessAdapter.ViewHold
         this.killListener = killListener;
     }
 
-    public void setData(List<SocketClient.ProcessInfo> novaLista) {
-        this.lista = novaLista;
-        notifyDataSetChanged();
-    }
-
-    /** Filtra a lista por nome (busca case-insensitive) */
+    /** Filtra a lista por nome e atualiza o RecyclerView */
     public void filter(String query, List<SocketClient.ProcessInfo> listaOriginal) {
+        int oldSize = lista.size();
+
         if (query.isEmpty()) {
             lista = new ArrayList<>(listaOriginal);
         } else {
@@ -41,7 +38,18 @@ public class ProcessAdapter extends RecyclerView.Adapter<ProcessAdapter.ViewHold
                 if (p.nome.toLowerCase().contains(q)) lista.add(p);
             }
         }
-        notifyDataSetChanged();
+
+        // Notifica inserções/remoções precisas em vez de invalidar tudo
+        int newSize = lista.size();
+        if (newSize > oldSize) {
+            notifyItemRangeInserted(oldSize, newSize - oldSize);
+            notifyItemRangeChanged(0, oldSize);
+        } else if (newSize < oldSize) {
+            notifyItemRangeRemoved(newSize, oldSize - newSize);
+            notifyItemRangeChanged(0, newSize);
+        } else {
+            notifyItemRangeChanged(0, newSize);
+        }
     }
 
     @NonNull
@@ -55,12 +63,10 @@ public class ProcessAdapter extends RecyclerView.Adapter<ProcessAdapter.ViewHold
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         SocketClient.ProcessInfo p = lista.get(position);
-
         holder.tvNome.setText(p.nome);
         holder.tvDetalhes.setText(holder.itemView.getContext()
                 .getString(R.string.process_details, p.pid, p.memoriaMb));
 
-        // Mostra título da janela se existir
         if (p.janela != null && !p.janela.isEmpty()) {
             holder.tvJanela.setVisibility(View.VISIBLE);
             holder.tvJanela.setText(p.janela);
@@ -74,9 +80,13 @@ public class ProcessAdapter extends RecyclerView.Adapter<ProcessAdapter.ViewHold
     @Override
     public int getItemCount() { return lista.size(); }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvNome, tvDetalhes, tvJanela;
-        Button   btnKill;
+
+
+    // private: não precisa ser visível fora do adapter
+    @SuppressWarnings("WeakerAccess")
+    public static final class ViewHolder extends RecyclerView.ViewHolder {
+        final TextView tvNome, tvDetalhes, tvJanela;
+        final Button   btnKill;
 
         ViewHolder(View itemView) {
             super(itemView);

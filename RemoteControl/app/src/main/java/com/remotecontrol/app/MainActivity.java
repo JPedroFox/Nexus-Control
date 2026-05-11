@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,55 +27,60 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
     private Button btnPlay, btnNext, btnPrev;
     private Button btnScreenshot;
     private Button btnLock, btnRestart, btnShutdown;
-    private Button btnProcessos;
+    private Button btnProcessos, btnMouseKeyboard;
 
     // ─── LÓGICA ───────────────────────────────────────────────────────────────
     private boolean isConnected = false;
 
-    // Exposto estaticamente para ProcessListActivity reutilizar a conexão
+    // Estático para ProcessListActivity e MouseKeyboardActivity reutilizarem a conexão
     public static SocketClient socketClient;
-    public static MainActivity instance;
 
-    // Campos estáticos para passar listas de imagens ao ScreenshotViewer
-    // (Intent não suporta byte arrays grandes — TransactionTooLargeException)
-    public static List<byte[]>  pendingScreenshots = null;
-    public static List<String>  pendingLabels      = null;
+    // WeakReference evita memory leak
+    private static WeakReference<MainActivity> instanceRef;
+    public static MainActivity getInstance() {
+        return instanceRef != null ? instanceRef.get() : null;
+    }
+
+    // Para passar imagens ao ScreenshotViewer sem TransactionTooLargeException
+    public static List<byte[]> pendingScreenshots = null;
+    public static List<String> pendingLabels      = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        instanceRef  = new WeakReference<>(this);
+        socketClient = new SocketClient(this);
+
         bindViews();
         setupClickListeners();
-
-        instance     = this;
-        socketClient = new SocketClient(this);
         setControlsEnabled(false);
     }
 
     // ─── SETUP ────────────────────────────────────────────────────────────────
 
     private void bindViews() {
-        etIp          = findViewById(R.id.etIp);
-        etPort        = findViewById(R.id.etPort);
-        btnConnect    = findViewById(R.id.btnConnect);
-        tvStatus      = findViewById(R.id.tvStatus);
+        etIp             = findViewById(R.id.etIp);
+        etPort           = findViewById(R.id.etPort);
+        btnConnect       = findViewById(R.id.btnConnect);
+        tvStatus         = findViewById(R.id.tvStatus);
 
-        btnVolUp      = findViewById(R.id.btnVolUp);
-        btnVolDown    = findViewById(R.id.btnVolDown);
-        btnMute       = findViewById(R.id.btnMute);
+        btnVolUp         = findViewById(R.id.btnVolUp);
+        btnVolDown       = findViewById(R.id.btnVolDown);
+        btnMute          = findViewById(R.id.btnMute);
 
-        btnPlay       = findViewById(R.id.btnPlay);
-        btnNext       = findViewById(R.id.btnNext);
-        btnPrev       = findViewById(R.id.btnPrev);
+        btnPlay          = findViewById(R.id.btnPlay);
+        btnNext          = findViewById(R.id.btnNext);
+        btnPrev          = findViewById(R.id.btnPrev);
 
-        btnScreenshot = findViewById(R.id.btnScreenshot);
+        btnScreenshot    = findViewById(R.id.btnScreenshot);
 
-        btnLock       = findViewById(R.id.btnLock);
-        btnRestart    = findViewById(R.id.btnRestart);
-        btnShutdown   = findViewById(R.id.btnShutdown);
-        btnProcessos  = findViewById(R.id.btnProcessos);
+        btnLock          = findViewById(R.id.btnLock);
+        btnRestart       = findViewById(R.id.btnRestart);
+        btnShutdown      = findViewById(R.id.btnShutdown);
+        btnProcessos     = findViewById(R.id.btnProcessos);
+        btnMouseKeyboard = findViewById(R.id.btnMouseKeyboard);
     }
 
     private void setupClickListeners() {
@@ -91,9 +97,13 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
         btnScreenshot.setOnClickListener(v -> send(CommandBuilder.screenshot()));
 
         btnLock.setOnClickListener(v       -> send(CommandBuilder.lock()));
-        btnRestart.setOnClickListener(v    -> confirmAndSend("Reiniciar o PC?",  CommandBuilder.restart()));
-        btnShutdown.setOnClickListener(v   -> confirmAndSend("Desligar o PC?",   CommandBuilder.shutdown()));
-        btnProcessos.setOnClickListener(v  -> startActivity(new Intent(this, ProcessListActivity.class)));
+        btnRestart.setOnClickListener(v    -> confirmAndSend("Reiniciar o PC?", CommandBuilder.restart()));
+        btnShutdown.setOnClickListener(v   -> confirmAndSend("Desligar o PC?",  CommandBuilder.shutdown()));
+
+        btnProcessos.setOnClickListener(v  ->
+                startActivity(new Intent(this, ProcessListActivity.class)));
+        btnMouseKeyboard.setOnClickListener(v ->
+                startActivity(new Intent(this, MouseKeyboardActivity.class)));
     }
 
     // ─── CONEXÃO ──────────────────────────────────────────────────────────────
@@ -141,12 +151,7 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
             JsonObject obj = JsonParser.parseString(json).getAsJsonObject();
             String status  = obj.get("status").getAsString();
             String msg     = obj.has("msg") ? obj.get("msg").getAsString() : "";
-
-            if ("OK".equals(status)) {
-                setStatus("✅ " + msg, true);
-            } else {
-                setStatus("⚠️ " + msg, false);
-            }
+            setStatus("OK".equals(status) ? "✅ " + msg : "⚠️ " + msg, "OK".equals(status));
         } catch (Exception e) {
             setStatus("Resposta: " + json, true);
         }
@@ -154,7 +159,6 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
 
     @Override
     public void onScreenshotsReceived(List<SocketClient.ScreenshotCaptura> capturas) {
-        // Passa dados via campos estáticos — evita TransactionTooLargeException do Bundle
         pendingScreenshots = new ArrayList<>();
         pendingLabels      = new ArrayList<>();
         for (SocketClient.ScreenshotCaptura c : capturas) {
@@ -167,7 +171,7 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
 
     @Override
     public void onProcessListReceived(List<SocketClient.ProcessInfo> processos) {
-        // Roteado para ProcessListActivity via setListener() — não chega aqui em uso normal
+        // Roteado para ProcessListActivity via setListener() — não chega aqui normalmente
     }
 
     @Override
@@ -179,10 +183,7 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
     // ─── HELPERS ──────────────────────────────────────────────────────────────
 
     private void send(String command) {
-        if (!isConnected) {
-            showToast("Não conectado");
-            return;
-        }
+        if (!isConnected) { showToast("Não conectado"); return; }
         socketClient.send(command);
     }
 
@@ -203,17 +204,12 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
     }
 
     private void setControlsEnabled(boolean enabled) {
-        btnVolUp.setEnabled(enabled);
-        btnVolDown.setEnabled(enabled);
-        btnMute.setEnabled(enabled);
-        btnPlay.setEnabled(enabled);
-        btnNext.setEnabled(enabled);
-        btnPrev.setEnabled(enabled);
-        btnScreenshot.setEnabled(enabled);
-        btnLock.setEnabled(enabled);
-        btnRestart.setEnabled(enabled);
-        btnShutdown.setEnabled(enabled);
-        btnProcessos.setEnabled(enabled);
+        btnVolUp.setEnabled(enabled);         btnVolDown.setEnabled(enabled);
+        btnMute.setEnabled(enabled);          btnPlay.setEnabled(enabled);
+        btnNext.setEnabled(enabled);          btnPrev.setEnabled(enabled);
+        btnScreenshot.setEnabled(enabled);    btnLock.setEnabled(enabled);
+        btnRestart.setEnabled(enabled);       btnShutdown.setEnabled(enabled);
+        btnProcessos.setEnabled(enabled);     btnMouseKeyboard.setEnabled(enabled);
     }
 
     private void showToast(String msg) {

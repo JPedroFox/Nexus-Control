@@ -37,16 +37,44 @@ public class CommandBuilder {
         return "{\"cmd\":\"SCREENSHOT\"}";
     }
 
-    // ─── LIST PROCESSES ───────────────────────────────────────────────────────
+    // ─── PROCESSOS ────────────────────────────────────────────────────────────
 
     public static String listProcesses() {
         return "{\"cmd\":\"LIST_PROCESSES\"}";
     }
 
-    // ─── KILL PROCESS ─────────────────────────────────────────────────────────
-
-    @SuppressWarnings("unused") // Reservado para uso futuro na UI
     public static String killProcess(String processName) {
         return "{\"cmd\":\"KILL_PROCESS\",\"nome\":\"" + processName + "\"}";
+    }
+
+    // ─── MOUSE ────────────────────────────────────────────────────────────────
+
+    public static String mouseMove(int dx, int dy) {
+        return "{\"cmd\":\"MOUSE\",\"acao\":\"MOVE\",\"dx\":" + dx + ",\"dy\":" + dy + "}";
+    }
+    public static String mouseLeftClick()  { return mouse("LEFT_CLICK");  }
+    public static String mouseRightClick() { return mouse("RIGHT_CLICK"); }
+    public static String mouseDoubleClick(){ return mouse("DOUBLE_CLICK");}
+    public static String mouseLeftDown()   { return mouse("LEFT_DOWN");   }
+    public static String mouseLeftUp()     { return mouse("LEFT_UP");     }
+
+    public static String mouseScroll(int delta) {
+        return "{\"cmd\":\"MOUSE\",\"acao\":\"SCROLL\",\"delta\":" + delta + "}";
+    }
+
+    private static String mouse(String acao) {
+        return "{\"cmd\":\"MOUSE\",\"acao\":\"" + acao + "\"}";
+    }
+
+    // ─── TECLADO ──────────────────────────────────────────────────────────────
+
+    public static String keyboardText(String texto) {
+        // Escapa aspas e barras invertidas no texto
+        String safe = texto.replace("\\", "\\\\").replace("\"", "\\\"");
+        return "{\"cmd\":\"TECLADO\",\"texto\":\"" + safe + "\"}";
+    }
+
+    public static String keyboardKey(String tecla) {
+        return "{\"cmd\":\"TECLADO\",\"tecla\":\"" + tecla + "\"}";
     }
 }

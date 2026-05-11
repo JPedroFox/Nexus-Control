@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#0A0A0F"
-    android:scrollbars="none">
+    android:scrollbars="none"
+    android:fitsSystemWindows="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -26,7 +28,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="REMOTE"
+                android:text="@string/title_remote"
                 android:textSize="32sp"
                 android:textStyle="bold"
                 android:textColor="#FFFFFF"
@@ -36,7 +38,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="CONTROL"
+                android:text="@string/title_control"
                 android:textSize="32sp"
                 android:textStyle="bold"
                 android:textColor="#00E5FF"
@@ -76,7 +78,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="CONEXÃO"
+                    android:text="@string/section_conexao"
                     android:textColor="#00E5FF"
                     android:textSize="11sp"
                     android:textStyle="bold"
@@ -95,10 +97,11 @@
                     android:layout_width="0dp"
                     android:layout_height="48dp"
                     android:layout_weight="3"
-                    android:hint="192.168.1.100"
+                    android:hint="@string/hint_ip"
+                    android:autofillHints="no"
                     android:inputType="text"
-                    android:textColor="#E0E0E0"
-                    android:textColorHint="#404050"
+                    android:textColor="#FFFFFF"
+                    android:textColorHint="#888899"
                     android:textSize="14sp"
                     android:fontFamily="monospace"
                     android:background="@drawable/input_bg"
@@ -111,10 +114,11 @@
                     android:layout_width="0dp"
                     android:layout_height="48dp"
                     android:layout_weight="1"
-                    android:hint="8888"
+                    android:hint="@string/hint_port"
+                    android:autofillHints="no"
                     android:inputType="number"
-                    android:textColor="#E0E0E0"
-                    android:textColorHint="#404050"
+                    android:textColor="#FFFFFF"
+                    android:textColorHint="#888899"
                     android:textSize="14sp"
                     android:fontFamily="monospace"
                     android:background="@drawable/input_bg"
@@ -126,7 +130,9 @@
                 android:id="@+id/btnConnect"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
-                android:text="CONECTAR"
+                android:maxWidth="320dp"
+                android:layout_gravity="center_horizontal"
+                android:text="@string/btn_conectar"
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:letterSpacing="0.1"
@@ -139,7 +145,7 @@
                 android:id="@+id/tvStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="● DESCONECTADO"
+                android:text="@string/status_disconnected"
                 android:textColor="#FF5252"
                 android:textSize="12sp"
                 android:fontFamily="monospace"
@@ -172,7 +178,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="VOLUME"
+                    android:text="@string/section_volume"
                     android:textColor="#7C4DFF"
                     android:textSize="11sp"
                     android:textStyle="bold"
@@ -183,14 +189,15 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                tools:ignore="ButtonStyle">
 
                 <Button
                     android:id="@+id/btnVolDown"
                     android:layout_width="0dp"
                     android:layout_height="56dp"
                     android:layout_weight="1"
-                    android:text="🔉"
+                    android:text="@string/btn_vol_down"
                     android:textSize="22sp"
                     android:backgroundTint="#16161F"
                     android:layout_marginEnd="6dp"/>
@@ -200,7 +207,7 @@
                     android:layout_width="0dp"
                     android:layout_height="56dp"
                     android:layout_weight="1"
-                    android:text="🔇"
+                    android:text="@string/btn_mute"
                     android:textSize="22sp"
                     android:backgroundTint="#16161F"
                     android:layout_marginEnd="6dp"/>
@@ -210,7 +217,7 @@
                     android:layout_width="0dp"
                     android:layout_height="56dp"
                     android:layout_weight="1"
-                    android:text="🔊"
+                    android:text="@string/btn_vol_up"
                     android:textSize="22sp"
                     android:backgroundTint="#16161F"/>
             </LinearLayout>
@@ -241,7 +248,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="MÍDIA"
+                    android:text="@string/section_midia"
                     android:textColor="#00E676"
                     android:textSize="11sp"
                     android:textStyle="bold"
@@ -252,14 +259,15 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                tools:ignore="ButtonStyle">
 
                 <Button
                     android:id="@+id/btnPrev"
                     android:layout_width="0dp"
                     android:layout_height="56dp"
                     android:layout_weight="1"
-                    android:text="⏮"
+                    android:text="@string/btn_prev"
                     android:textSize="22sp"
                     android:backgroundTint="#16161F"
                     android:layout_marginEnd="6dp"/>
@@ -269,7 +277,7 @@
                     android:layout_width="0dp"
                     android:layout_height="64dp"
                     android:layout_weight="1"
-                    android:text="⏯"
+                    android:text="@string/btn_play"
                     android:textSize="26sp"
                     android:backgroundTint="#1A2A1A"
                     android:layout_marginEnd="6dp"/>
@@ -279,7 +287,7 @@
                     android:layout_width="0dp"
                     android:layout_height="56dp"
                     android:layout_weight="1"
-                    android:text="⏭"
+                    android:text="@string/btn_next"
                     android:textSize="22sp"
                     android:backgroundTint="#16161F"/>
             </LinearLayout>
@@ -310,7 +318,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="TELA DO PC"
+                    android:text="@string/section_tela"
                     android:textColor="#FF6D00"
                     android:textSize="11sp"
                     android:textStyle="bold"
@@ -322,7 +330,7 @@
                 android:id="@+id/btnScreenshot"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
-                android:text="📸  CAPTURAR TELA"
+                android:text="@string/btn_screenshot"
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:letterSpacing="0.08"
@@ -355,7 +363,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="SISTEMA"
+                    android:text="@string/section_sistema"
                     android:textColor="#FF1744"
                     android:textSize="11sp"
                     android:textStyle="bold"
@@ -366,14 +374,15 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                tools:ignore="ButtonStyle">
 
                 <Button
                     android:id="@+id/btnLock"
                     android:layout_width="0dp"
                     android:layout_height="52dp"
                     android:layout_weight="1"
-                    android:text="🔒"
+                    android:text="@string/btn_lock"
                     android:textSize="20sp"
                     android:backgroundTint="#16161F"
                     android:layout_marginEnd="6dp"/>
@@ -383,7 +392,7 @@
                     android:layout_width="0dp"
                     android:layout_height="52dp"
                     android:layout_weight="1"
-                    android:text="🔄"
+                    android:text="@string/btn_restart"
                     android:textSize="20sp"
                     android:backgroundTint="#1A0D00"
                     android:layout_marginEnd="6dp"/>
@@ -393,7 +402,7 @@
                     android:layout_width="0dp"
                     android:layout_height="52dp"
                     android:layout_weight="1"
-                    android:text="⏻"
+                    android:text="@string/btn_shutdown"
                     android:textSize="20sp"
                     android:backgroundTint="#1F0000"/>
             </LinearLayout>
@@ -409,8 +418,24 @@
             android:backgroundTint="#1A1A2E"
             android:textColor="#7986CB"
             android:textStyle="bold"
+            android:fontFamily="monospace"
+            android:letterSpacing="0.1"
+            android:layout_marginTop="12dp"/>
+
+
+        <!-- ── MOUSE E TECLADO ──────────────────────────────────────────────── -->
+        <Button
+            android:id="@+id/btnMouseKeyboard"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="@string/btn_mouse_keyboard"
+            android:backgroundTint="#0D1A0D"
+            android:textColor="#00E676"
+            android:textStyle="bold"
+            android:fontFamily="monospace"
+            android:letterSpacing="0.1"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"/>
 
     </LinearLayout>
-</ScrollView> 
+</ScrollView>

@@ -1,8 +1,37 @@
 <resources>
     <string name="app_name">RemoteControl</string>
 
+    <!-- Botão de conexão -->
     <string name="btn_connect">Conectar</string>
     <string name="btn_disconnect">Desconectar</string>
+
+    <!-- MainActivity: títulos e labels -->
+    <string name="title_remote">REMOTE</string>
+    <string name="title_control">CONTROL</string>
+    <string name="section_conexao">CONEXÃO</string>
+    <string name="section_volume">VOLUME</string>
+    <string name="section_midia">MÍDIA</string>
+    <string name="section_tela">TELA DO PC</string>
+    <string name="section_sistema">SISTEMA</string>
+    <string name="status_disconnected">● DESCONECTADO</string>
+    <string name="btn_conectar">CONECTAR</string>
+
+    <!-- MainActivity: hints dos campos -->
+    <string name="hint_ip">192.168.1.100</string>
+    <string name="hint_port">8888</string>
+
+    <!-- MainActivity: botões de controle -->
+    <string name="btn_vol_down">🔉</string>
+    <string name="btn_mute">🔇</string>
+    <string name="btn_vol_up">🔊</string>
+    <string name="btn_prev">⏮</string>
+    <string name="btn_play">⏯</string>
+    <string name="btn_next">⏭</string>
+    <string name="btn_screenshot">📸  CAPTURAR TELA</string>
+    <string name="btn_lock">🔒</string>
+    <string name="btn_restart">🔄</string>
+    <string name="btn_shutdown">⏻</string>
+    <string name="btn_processos">⚙ Processos</string>
 
     <!-- ScreenshotViewer -->
     <string name="loading">Carregando…</string>
@@ -34,6 +63,28 @@
     <string name="cancel">Cancelar</string>
     <string name="disconnected">Desconectado: %1$s</string>
 
-    <!-- MainActivity -->
-    <string name="btn_processos">⚙ Processos</string>
+    <!-- MouseKeyboardActivity -->
+    <string name="title_mouse_keyboard">Mouse e Teclado</string>
+    <string name="btn_mouse_keyboard">🖱 Mouse e Teclado</string>
+    <string name="btn_left_click">◀ Click Esq</string>
+    <string name="btn_right_click">Click Dir ▶</string>
+    <string name="btn_double_click">2x</string>
+    <string name="btn_show_keyboard">⌨ Mostrar Teclado</string>
+    <string name="btn_hide_keyboard">⌨ Ocultar Teclado</string>
+    <string name="keyboard_hint">Digite aqui…</string>
+    <!-- MouseKeyboardActivity: teclas especiais -->
+    <string name="key_esc">ESC</string>
+    <string name="key_tab">TAB</string>
+    <string name="key_enter">ENTER ↵</string>
+    <string name="key_backspace">⌫</string>
+    <string name="key_home">⇱</string>
+    <string name="key_end">⇲</string>
+    <string name="key_delete">DEL</string>
+    <string name="key_up">▲</string>
+    <string name="key_down">▼</string>
+    <string name="key_left">◀</string>
+    <string name="key_right">▶</string>
+    <string name="key_pageup">PgUp</string>
+    <string name="key_pagedown">PgDn</string>
+    <string name="key_win">⊞</string>
 </resources>

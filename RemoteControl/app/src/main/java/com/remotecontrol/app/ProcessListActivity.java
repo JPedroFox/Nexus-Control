@@ -120,7 +120,7 @@ public class ProcessListActivity extends AppCompatActivity
     protected void onDestroy() {
         super.onDestroy();
         // Devolve o listener para a MainActivity ao fechar
-        if (MainActivity.instance != null)
-            MainActivity.socketClient.setListener(MainActivity.instance);
+        if (MainActivity.getInstance() != null)
+            MainActivity.socketClient.setListener(MainActivity.getInstance());
     }
 }
