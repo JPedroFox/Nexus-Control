@@ -17,6 +17,7 @@ gradle-app.setting
 # .NET
 bin/
 obj/
+dist/
 *.user
 *.suo
 
