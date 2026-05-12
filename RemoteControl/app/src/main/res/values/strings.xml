@@ -1,17 +1,15 @@
 <resources>
-    <string name="app_name">RemoteControl</string>
-
-    <!-- MainActivity: IPs recentes -->
-    <string name="label_recent_ips">RECENTES</string>
+    <string name="app_name">Nexus Control</string>
 
     <!-- Botão de conexão -->
     <string name="btn_connect">Conectar</string>
     <string name="btn_disconnect">Desconectar</string>
 
     <!-- MainActivity: títulos e labels -->
-    <string name="title_remote">REMOTE</string>
+    <string name="title_remote">NEXUS</string>
     <string name="title_control">CONTROL</string>
     <string name="section_conexao">CONEXÃO</string>
+    <string name="label_recent_ips">IPS RECENTES</string>
     <string name="section_volume">VOLUME</string>
     <string name="section_midia">MÍDIA</string>
     <string name="section_tela">TELA DO PC</string>

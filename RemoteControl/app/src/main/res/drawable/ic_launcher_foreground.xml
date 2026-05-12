@@ -1,30 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    ic_launcher_foreground.xml
+    Caminho: res/drawable/ic_launcher_foreground.xml
+
+    Canvas: 108×108dp (padrão adaptive icon)
+    Zona segura: 72×72dp centralizada (margem de 18dp em cada lado)
+    Todo o conteúdo visível deve estar dentro da zona segura.
+
+    Design: "N" estilizado com 4 nós de conexão nos cantos — identidade visual "nexus".
+    Cores: cyan #00E5FF sobre fundo transparente (o fundo vem do ic_launcher_background).
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path android:pathData="M31,63.928c0,0 6.4,-11 12.1,-13.1c7.2,-2.6 26,-1.4 26,-1.4l38.1,38.1L107,108.928l-32,-1L31,63.928z">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:endX="85.84757"
-                android:endY="92.4963"
-                android:startX="42.9492"
-                android:startY="49.59793"
-                android:type="linear">
-                <item
-                    android:color="#44000000"
-                    android:offset="0.0" />
-                <item
-                    android:color="#00000000"
-                    android:offset="1.0" />
-            </gradient>
-        </aapt:attr>
-    </path>
+
+    <!--
+        Linhas de conexão entre os 4 nós (fundo sutil)
+        Ficam atrás do N, em cyan com ~25% de opacidade.
+        Os 4 nós estão em: (30,30) (78,30) (30,78) (78,78)
+    -->
+    <path
+        android:strokeColor="#4000E5FF"
+        android:strokeWidth="2"
+        android:fillColor="#00000000"
+        android:pathData="
+            M30,30 L78,30
+            M30,78 L78,78
+            M30,30 L30,78
+            M78,30 L78,78" />
+
+    <!--
+        Letra N — bold, ocupa a zona segura (de ~27 a ~81 em cada eixo)
+
+        Anatomia do N:
+          • Barra esquerda:  x 27–40,  y 25–83
+          • Diagonal:        de (40,25) desce para (68,83), largura 12
+          • Barra direita:   x 68–81,  y 25–83
+
+        Path fechado (sentido horário):
+          Começa no canto superior-esquerdo da barra esquerda,
+          desce pela barra esquerda, sobe pela diagonal,
+          desce pela barra direita, sobe pela diagonal de volta.
+    -->
+    <path
+        android:fillColor="#00E5FF"
+        android:pathData="
+            M27,25 L27,83 L40,83 L40,51 L68,83 L81,83 L81,25 L68,25 L68,57 L40,25 Z" />
+
+    <!--
+        Nó superior-esquerdo  — centro (30, 30), raio 6
+        M cx,cy  m -r,0  a r,r 0 1,0 2r,0  a r,r 0 1,0 -2r,0
+    -->
     <path
         android:fillColor="#FFFFFF"
-        android:fillType="nonZero"
-        android:pathData="M65.3,45.828l3.8,-6.6c0.2,-0.4 0.1,-0.9 -0.3,-1.1c-0.4,-0.2 -0.9,-0.1 -1.1,0.3l-3.9,6.7c-6.3,-2.8 -13.4,-2.8 -19.7,0l-3.9,-6.7c-0.2,-0.4 -0.7,-0.5 -1.1,-0.3C38.8,38.328 38.7,38.828 38.9,39.228l3.8,6.6C36.2,49.428 31.7,56.028 31,63.928h46C76.3,56.028 71.8,49.428 65.3,45.828zM43.4,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2c-0.3,-0.7 -0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C45.3,56.528 44.5,57.328 43.4,57.328L43.4,57.328zM64.6,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2s-0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C66.5,56.528 65.6,57.328 64.6,57.328L64.6,57.328z"
-        android:strokeWidth="1"
-        android:strokeColor="#00000000" />
+        android:pathData="M30,30 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0" />
+
+    <!-- Nó superior-direito  — centro (78, 30) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M78,30 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0" />
+
+    <!-- Nó inferior-esquerdo — centro (30, 78) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M30,78 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0" />
+
+    <!-- Nó inferior-direito  — centro (78, 78) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M78,78 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0" />
+
+    <!--
+        Miolo dos nós em cyan escuro — cria o efeito de "anel" branco com centro escuro.
+        Mesmo centro, raio 3.
+    -->
+    <path
+        android:fillColor="#0A0A0F"
+        android:pathData="M30,30 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
+    <path
+        android:fillColor="#0A0A0F"
+        android:pathData="M78,30 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
+    <path
+        android:fillColor="#0A0A0F"
+        android:pathData="M30,78 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
+    <path
+        android:fillColor="#0A0A0F"
+        android:pathData="M78,78 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
+
 </vector>
