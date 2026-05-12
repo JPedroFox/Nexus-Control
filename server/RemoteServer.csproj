@@ -8,6 +8,30 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>RemoteServer</AssemblyName>
     <RootNamespace>RemoteServer</RootNamespace>
+
+    <!-- Metadados que aparecem no Gerenciador de Tarefas / Propriedades do .exe -->
+    <AssemblyTitle>RemoteServer</AssemblyTitle>
+    <AssemblyDescription>Servidor de controle remoto via Android</AssemblyDescription>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+
+    <!-- ── Publicação Single-File Self-Contained ──────────────────────────────
+         PublishSingleFile              → tudo num único .exe (dlls, resources)
+         SelfContained                  → embute o runtime .NET — sem instalação
+         RuntimeIdentifier              → Windows 64-bit
+         PublishTrimmed                 → false: trimming pode quebrar reflexão
+                                          do Newtonsoft.Json; deixa desligado
+         IncludeNativeLibrariesFor...   → extrai as dlls nativas (NAudio/WASAPI)
+                                          de dentro do exe quando necessário
+    ─────────────────────────────────────────────────────────────────────────-->
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PublishTrimmed>false</PublishTrimmed>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+
+    <!-- Manifesto: DPI awareness + nível de execução sem UAC prompt -->
+    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <ItemGroup>
