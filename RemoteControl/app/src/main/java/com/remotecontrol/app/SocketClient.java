@@ -131,7 +131,7 @@ public class SocketClient {
 
                 if (msg.contains("\"capturas\"")) {
                     handleScreenshots(msg);
-                } else if (msg.contains("\"PROCESS_LIST\"")) {
+                } else if (msg.contains("\"processos\"")) {
                     handleProcessList(msg);
                 } else {
                     uiHandler.post(() -> listener.onMessageReceived(msg));
@@ -187,7 +187,7 @@ public class SocketClient {
                 lista.add(new ProcessInfo(
                         p.get("nome").getAsString(),
                         p.get("pid").getAsInt(),
-                        p.get("memoria_mb").getAsLong(),
+                        p.get("mem_mb").getAsLong(),
                         p.has("janela") ? p.get("janela").getAsString() : ""
                 ));
             }

@@ -1,6 +1,9 @@
 <resources>
     <string name="app_name">RemoteControl</string>
 
+    <!-- MainActivity: IPs recentes -->
+    <string name="label_recent_ips">RECENTES</string>
+
     <!-- Botão de conexão -->
     <string name="btn_connect">Conectar</string>
     <string name="btn_disconnect">Desconectar</string>

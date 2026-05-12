@@ -1,27 +1,43 @@
 package com.remotecontrol.app;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements SocketClient.SocketListener {
+
+    // ─── PREFS ────────────────────────────────────────────────────────────────
+    private static final String PREFS_NAME     = "rc_prefs";
+    private static final String KEY_RECENT_IPS = "recent_ips";
+    private static final int    MAX_RECENT_IPS = 5;
+    private static final String IP_SEPARATOR   = "||";
 
     // ─── VIEWS ────────────────────────────────────────────────────────────────
     private EditText etIp, etPort;
     private Button btnConnect;
     private TextView tvStatus;
+    private LinearLayout layoutRecentIps;
+    private ChipGroup chipGroupRecentIps;
 
     private Button btnVolUp, btnVolDown, btnMute;
     private Button btnPlay, btnNext, btnPrev;
@@ -56,6 +72,7 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
         bindViews();
         setupClickListeners();
         setControlsEnabled(false);
+        updateRecentIpsUI();
     }
 
     // ─── SETUP ────────────────────────────────────────────────────────────────
@@ -65,6 +82,8 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
         etPort           = findViewById(R.id.etPort);
         btnConnect       = findViewById(R.id.btnConnect);
         tvStatus         = findViewById(R.id.tvStatus);
+        layoutRecentIps  = findViewById(R.id.layoutRecentIps);
+        chipGroupRecentIps = findViewById(R.id.chipGroupRecentIps);
 
         btnVolUp         = findViewById(R.id.btnVolUp);
         btnVolDown       = findViewById(R.id.btnVolDown);
@@ -132,6 +151,8 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
     @Override
     public void onConnected() {
         isConnected = true;
+        saveRecentIp(etIp.getText().toString().trim());
+        updateRecentIpsUI();
         setStatus("✅ Conectado", true);
         btnConnect.setText(R.string.btn_disconnect);
         setControlsEnabled(true);
@@ -214,6 +235,75 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
 
     private void showToast(String msg) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+    }
+
+    // ─── IPs RECENTES ─────────────────────────────────────────────────────────
+
+    private void saveRecentIp(String ip) {
+        if (ip.isEmpty()) return;
+
+        LinkedList<String> ips = new LinkedList<>(loadRecentIps());
+        ips.remove(ip);          // remove duplicata se existir
+        ips.addFirst(ip);        // coloca no topo (mais recente)
+        while (ips.size() > MAX_RECENT_IPS) ips.removeLast();
+
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        prefs.edit()
+                .putString(KEY_RECENT_IPS, String.join(IP_SEPARATOR, ips))
+                .apply();
+    }
+
+    private List<String> loadRecentIps() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        String raw = prefs.getString(KEY_RECENT_IPS, "");
+        if (raw.isEmpty()) return new ArrayList<>();
+        return new ArrayList<>(Arrays.asList(raw.split("\\|\\|")));
+    }
+
+    private void updateRecentIpsUI() {
+        List<String> ips = loadRecentIps();
+        chipGroupRecentIps.removeAllViews();
+
+        if (ips.isEmpty()) {
+            layoutRecentIps.setVisibility(android.view.View.GONE);
+            return;
+        }
+
+        layoutRecentIps.setVisibility(android.view.View.VISIBLE);
+
+        for (String ip : ips) {
+            Chip chip = new Chip(this);
+            chip.setText(ip);
+            chip.setTextColor(Color.parseColor("#00E5FF"));
+            chip.setChipBackgroundColorResource(android.R.color.transparent);
+            chip.setChipStrokeWidth(1f);
+            chip.setChipStrokeColor(android.content.res.ColorStateList.valueOf(
+                    Color.parseColor("#1A3A4A")));
+            chip.setTextSize(11f);
+            chip.setTypeface(android.graphics.Typeface.MONOSPACE);
+            chip.setCloseIconVisible(true);
+            chip.setCloseIconTint(android.content.res.ColorStateList.valueOf(
+                    Color.parseColor("#334455")));
+
+            // Toque no chip: preenche o campo de IP
+            chip.setOnClickListener(v -> {
+                etIp.setText(ip);
+                etIp.setSelection(ip.length());
+            });
+
+            // X no chip: remove do histórico e atualiza a UI
+            chip.setOnCloseIconClickListener(v -> {
+                SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+                List<String> current = new ArrayList<>(loadRecentIps());
+                current.remove(ip);
+                prefs.edit()
+                        .putString(KEY_RECENT_IPS, String.join(IP_SEPARATOR, current))
+                        .apply();
+                updateRecentIpsUI();
+            });
+
+            chipGroupRecentIps.addView(chip);
+        }
     }
 
     // ─── LIFECYCLE ────────────────────────────────────────────────────────────

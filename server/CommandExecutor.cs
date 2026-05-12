@@ -226,7 +226,7 @@ namespace RemoteServer
                     {
                         pid  = p.Id,
                         nome = p.ProcessName,
-                        mem  = p.WorkingSet64 / 1024  // KB
+                        mem_mb = p.WorkingSet64 / 1024 / 1024  // MB
                     });
                 }
                 catch
