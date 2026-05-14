@@ -31,6 +31,7 @@
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
 
     <!-- Manifesto: DPI awareness + sem prompt de UAC -->
+    <ApplicationIcon>nexus.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 

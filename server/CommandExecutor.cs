@@ -31,12 +31,12 @@ namespace RemoteServer
                     "LIST_PROCESSES" => HandleListProcesses(),
                     "MOUSE"          => HandleMouse(json),
                     "TECLADO"        => HandleTeclado(json),
-                    _                => Error($"Comando desconhecido: {cmd}")
+                    _                => Error($"Unknown command: {cmd}")
                 };
             }
             catch (Exception ex)
             {
-                return Error($"Exceção ao executar comando: {ex.Message}");
+                return Error($"Exception executing command: {ex.Message}");
             }
         }
 
@@ -50,30 +50,43 @@ namespace RemoteServer
             {
                 case "VOLUME_UP":
                     ChangeVolume(+VOLUME_STEP);
-                    return Ok($"Volume aumentado para {GetVolumePercent()}%");
+                    return Ok($"Volume up: {GetVolumePercent()}%");
 
                 case "VOLUME_DOWN":
                     ChangeVolume(-VOLUME_STEP);
-                    return Ok($"Volume diminuído para {GetVolumePercent()}%");
+                    return Ok($"Volume down: {GetVolumePercent()}%");
 
                 case "MUTE":
                     ToggleMute();
-                    return Ok("Mute alternado");
+                    return Ok("Mute toggled");
 
                 case "PLAY_PAUSE":
                     SendMediaKey(VK_MEDIA_PLAY_PAUSE);
-                    return Ok("Play/Pause enviado");
+                    return Ok("Play/Pause");
 
                 case "NEXT":
                     SendMediaKey(VK_MEDIA_NEXT_TRACK);
-                    return Ok("Próxima faixa");
+                    return Ok("Next track");
 
                 case "PREV":
                     SendMediaKey(VK_MEDIA_PREV_TRACK);
-                    return Ok("Faixa anterior");
+                    return Ok("Previous track");
+
+                // ── Skip forward +10 s ────────────────────────────────────
+                // Sends Right arrow key — universally recognised as a short
+                // skip in VLC (default 10 s), Windows Media Player, browser
+                // video players and most desktop media apps.
+                case "SKIP_FWD":
+                    SendVirtualKey(VK_RIGHT);
+                    return Ok("+10s");
+
+                // ── Skip backward -10 s ───────────────────────────────────
+                case "SKIP_BACK":
+                    SendVirtualKey(VK_LEFT);
+                    return Ok("-10s");
 
                 default:
-                    return Error($"Ação de mídia desconhecida: {acao}");
+                    return Error($"Unknown media action: {acao}");
             }
         }
 
@@ -100,7 +113,7 @@ namespace RemoteServer
             device.AudioEndpointVolume.Mute = !device.AudioEndpointVolume.Mute;
         }
 
-        // ─── SISTEMA ──────────────────────────────────────────────────────────
+        // ─── SYSTEM ───────────────────────────────────────────────────────────
 
         private static string HandleSistema(JObject json)
         {
@@ -111,7 +124,7 @@ namespace RemoteServer
                 "SHUTDOWN" => RunShellCommand("shutdown /s /t 5"),
                 "RESTART"  => RunShellCommand("shutdown /r /t 5"),
                 "LOCK"     => LockWorkstation(),
-                _          => Error($"Ação de sistema desconhecida: {acao}")
+                _          => Error($"Unknown system action: {acao}")
             };
         }
 
@@ -122,25 +135,17 @@ namespace RemoteServer
                 CreateNoWindow  = true,
                 UseShellExecute = false
             });
-            return Ok($"Comando executado: {command}");
+            return Ok($"Command executed: {command}");
         }
 
         private static string LockWorkstation()
         {
             LockWorkStation();
-            return Ok("Estação de trabalho bloqueada");
+            return Ok("Workstation locked");
         }
 
         // ─── SCREENSHOT ───────────────────────────────────────────────────────
 
-        /// <summary>
-        /// Captura cada monitor via Win32 EnumDisplayMonitors + GetMonitorInfo,
-        /// que retorna bounds físicos reais independente de DPI scaling.
-        ///
-        /// Screen.AllScreens sofre virtualização DPI no processo — com primário
-        /// em 125%, os bounds do secundário ficam errados. A API Win32 direta
-        /// não passa por essa camada de tradução.
-        /// </summary>
         private static string HandleScreenshot()
         {
             ImageCodecInfo    jpegEncoder   = GetJpegEncoder();
@@ -189,7 +194,7 @@ namespace RemoteServer
         {
             foreach (ImageCodecInfo codec in ImageCodecInfo.GetImageEncoders())
                 if (codec.MimeType == "image/jpeg") return codec;
-            throw new Exception("Encoder JPEG não encontrado");
+            throw new Exception("JPEG encoder not found");
         }
 
         // ─── KILL PROCESS ─────────────────────────────────────────────────────
@@ -198,26 +203,26 @@ namespace RemoteServer
         {
             string nome = json["nome"]?.ToString() ?? "";
             if (string.IsNullOrEmpty(nome))
-                return Error("Campo 'nome' obrigatório para KILL_PROCESS");
+                return Error("Field 'nome' required for KILL_PROCESS");
 
             Process[] processos = Process.GetProcessesByName(
                 nome.Replace(".exe", "", StringComparison.OrdinalIgnoreCase)
             );
 
             if (processos.Length == 0)
-                return Error($"Processo não encontrado: {nome}");
+                return Error($"Process not found: {nome}");
 
             foreach (Process p in processos) p.Kill();
-            return Ok($"{processos.Length} processo(s) '{nome}' encerrado(s)");
+            return Ok($"{processos.Length} process(es) '{nome}' killed");
         }
 
-        // ─── LIST PROCESSES ───────────────────────────────────────────────────────
+        // ─── LIST PROCESSES ───────────────────────────────────────────────────
 
         private static string HandleListProcesses()
         {
             Process[] processos = Process.GetProcesses();
-
             var lista = new List<object>();
+
             foreach (Process p in processos)
             {
                 try
@@ -226,16 +231,12 @@ namespace RemoteServer
                     {
                         pid  = p.Id,
                         nome = p.ProcessName,
-                        mem_mb = p.WorkingSet64 / 1024 / 1024  // MB
+                        mem  = p.WorkingSet64 / 1024
                     });
                 }
-                catch
-                {
-                    // Alguns processos do sistema negam acesso — ignora silenciosamente
-                }
+                catch { }
             }
 
-            // Ordena por nome para facilitar leitura no celular
             lista.Sort((a, b) =>
                 string.Compare(
                     ((dynamic)a).nome,
@@ -272,48 +273,47 @@ namespace RemoteServer
                     int dx = json["dx"]?.ToObject<int>() ?? 0;
                     int dy = json["dy"]?.ToObject<int>() ?? 0;
                     SendMouseInput(dx, dy, 0, MOUSEEVENTF_MOVE);
-                    return Ok("Mouse movido");
+                    return Ok("Mouse moved");
 
                 case "LEFT_DOWN":
                     SendMouseInput(0, 0, 0, MOUSEEVENTF_LEFTDOWN);
-                    return Ok("Botão esquerdo pressionado");
+                    return Ok("Left button down");
 
                 case "LEFT_UP":
                     SendMouseInput(0, 0, 0, MOUSEEVENTF_LEFTUP);
-                    return Ok("Botão esquerdo solto");
+                    return Ok("Left button up");
 
                 case "LEFT_CLICK":
                     SendMouseInput(0, 0, 0, MOUSEEVENTF_LEFTDOWN);
                     SendMouseInput(0, 0, 0, MOUSEEVENTF_LEFTUP);
-                    return Ok("Click esquerdo");
+                    return Ok("Left click");
 
                 case "RIGHT_CLICK":
                     SendMouseInput(0, 0, 0, MOUSEEVENTF_RIGHTDOWN);
                     SendMouseInput(0, 0, 0, MOUSEEVENTF_RIGHTUP);
-                    return Ok("Click direito");
+                    return Ok("Right click");
 
                 case "DOUBLE_CLICK":
                     SendMouseInput(0, 0, 0, MOUSEEVENTF_LEFTDOWN);
                     SendMouseInput(0, 0, 0, MOUSEEVENTF_LEFTUP);
                     SendMouseInput(0, 0, 0, MOUSEEVENTF_LEFTDOWN);
                     SendMouseInput(0, 0, 0, MOUSEEVENTF_LEFTUP);
-                    return Ok("Duplo click");
+                    return Ok("Double click");
 
                 case "SCROLL":
                     int delta = json["delta"]?.ToObject<int>() ?? 0;
-                    // WHEEL_DELTA = 120 por notch padrão
                     SendMouseInput(0, 0, (uint)(delta * 120), MOUSEEVENTF_WHEEL);
-                    return Ok("Scroll enviado");
+                    return Ok("Scroll");
 
                 default:
-                    return Error($"Ação de mouse desconhecida: {acao}");
+                    return Error($"Unknown mouse action: {acao}");
             }
         }
 
         private static void SendMouseInput(int dx, int dy, uint data, uint flags)
         {
             INPUT[] inputs = new INPUT[1];
-            inputs[0].type = INPUT_MOUSE;
+            inputs[0].type          = INPUT_MOUSE;
             inputs[0].U.mi.dx       = dx;
             inputs[0].U.mi.dy       = dy;
             inputs[0].U.mi.mouseData = data;
@@ -321,42 +321,34 @@ namespace RemoteServer
             SendInput(1, inputs, Marshal.SizeOf<INPUT>());
         }
 
-        // ─── TECLADO ──────────────────────────────────────────────────────────
+        // ─── KEYBOARD ─────────────────────────────────────────────────────────
 
         private static string HandleTeclado(JObject json)
         {
-            // Modo texto: digita uma string caractere a caractere via Unicode
             string? texto = json["texto"]?.ToString();
             if (texto != null)
             {
-                foreach (char c in texto)
-                    SendUnicodeChar(c);
-                return Ok($"Texto digitado: {texto}");
+                foreach (char c in texto) SendUnicodeChar(c);
+                return Ok($"Text typed: {texto}");
             }
 
-            // Modo tecla especial: usa virtual key code
             string tecla = json["tecla"]?.ToString()?.ToUpper() ?? "";
             if (!TeclaEspecial.TryGetValue(tecla, out ushort vk))
-                return Error($"Tecla desconhecida: {tecla}");
+                return Error($"Unknown key: {tecla}");
 
             SendVirtualKey(vk);
-            return Ok($"Tecla enviada: {tecla}");
+            return Ok($"Key sent: {tecla}");
         }
 
         private static void SendUnicodeChar(char c)
         {
             INPUT[] inputs = new INPUT[2];
-
-            // Key down
             inputs[0].type         = INPUT_KEYBOARD;
             inputs[0].U.ki.wScan   = c;
             inputs[0].U.ki.dwFlags = KEYEVENTF_UNICODE;
-
-            // Key up
             inputs[1].type         = INPUT_KEYBOARD;
             inputs[1].U.ki.wScan   = c;
             inputs[1].U.ki.dwFlags = KEYEVENTF_UNICODE | KEYEVENTF_KEYUP;
-
             SendInput(2, inputs, Marshal.SizeOf<INPUT>());
         }
 
@@ -371,7 +363,6 @@ namespace RemoteServer
             SendInput(2, inputs, Marshal.SizeOf<INPUT>());
         }
 
-        // Mapa de teclas especiais
         private static readonly Dictionary<string, ushort> TeclaEspecial = new()
         {
             ["ENTER"]     = 0x0D,
@@ -389,7 +380,7 @@ namespace RemoteServer
             ["PAGEUP"]    = 0x21,
             ["PAGEDOWN"]  = 0x22,
             ["WIN"]       = 0x5B,
-            ["COPY"]      = 0x43, // Ctrl+C precisaria de combo — simplificado
+            ["COPY"]      = 0x43,
         };
 
         // ─── WIN32 API ────────────────────────────────────────────────────────
@@ -403,18 +394,19 @@ namespace RemoteServer
         [DllImport("user32.dll", SetLastError = true)]
         private static extern uint SendInput(uint nInputs, INPUT[] pInputs, int cbSize);
 
-        private const byte VK_MEDIA_PLAY_PAUSE   = 0xB3;
-        private const byte VK_MEDIA_NEXT_TRACK   = 0xB0;
-        private const byte VK_MEDIA_PREV_TRACK   = 0xB1;
+        private const byte VK_MEDIA_PLAY_PAUSE = 0xB3;
+        private const byte VK_MEDIA_NEXT_TRACK = 0xB0;
+        private const byte VK_MEDIA_PREV_TRACK = 0xB1;
+        private const ushort VK_LEFT           = 0x25;
+        private const ushort VK_RIGHT          = 0x27;
+
         private const uint KEYEVENTF_EXTENDEDKEY = 0x01;
         private const uint KEYEVENTF_KEYUP       = 0x02;
-        private const uint KEYEVENTF_UNICODE     = 0x04;
+        private const uint KEYEVENTF_UNICODE      = 0x04;
 
-        // SendInput: tipo de evento
         private const uint INPUT_MOUSE    = 0;
         private const uint INPUT_KEYBOARD = 1;
 
-        // Mouse flags
         private const uint MOUSEEVENTF_MOVE      = 0x0001;
         private const uint MOUSEEVENTF_LEFTDOWN  = 0x0002;
         private const uint MOUSEEVENTF_LEFTUP    = 0x0004;
@@ -445,8 +437,8 @@ namespace RemoteServer
         [StructLayout(LayoutKind.Explicit)]
         private struct InputUnion
         {
-            [FieldOffset(0)] public MOUSEINPUT  mi;
-            [FieldOffset(0)] public KEYBDINPUT  ki;
+            [FieldOffset(0)] public MOUSEINPUT mi;
+            [FieldOffset(0)] public KEYBDINPUT ki;
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -465,21 +457,17 @@ namespace RemoteServer
         // ─── WIN32: ENUM MONITORS ─────────────────────────────────────────────
 
         [StructLayout(LayoutKind.Sequential)]
-        private struct RECT
-        {
-            public int left, top, right, bottom;
-        }
+        private struct RECT { public int left, top, right, bottom; }
 
         [StructLayout(LayoutKind.Sequential)]
         private struct MONITORINFOEX
         {
             public int  cbSize;
-            public RECT rcMonitor; // bounds físicos no desktop virtual
-            public RECT rcWork;    // área útil (sem taskbar)
-            public uint dwFlags;   // 1 = monitor primário
+            public RECT rcMonitor;
+            public RECT rcWork;
+            public uint dwFlags;
         }
 
-        // Delegate nomeado — lambda com parâmetro ref não compila em C# < 14 (CS9202)
         private delegate bool MonitorEnumProc(
             IntPtr hMonitor, IntPtr hdcMonitor, ref RECT lprcMonitor, IntPtr dwData);
 
@@ -491,8 +479,6 @@ namespace RemoteServer
         private static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFOEX lpmi);
 
         private const uint MONITORINFOF_PRIMARY = 1;
-
-        // Acumulador estático para o callback síncrono de EnumDisplayMonitors
         private static List<(RECT bounds, bool primary)>? _monitorEnumResult;
 
         private static bool MonitorEnumCallback(
@@ -508,7 +494,7 @@ namespace RemoteServer
         {
             _monitorEnumResult = new List<(RECT, bool)>();
             EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, MonitorEnumCallback, IntPtr.Zero);
-            List<(RECT, bool)> result = _monitorEnumResult;
+            var result = _monitorEnumResult;
             _monitorEnumResult = null;
             return result;
         }

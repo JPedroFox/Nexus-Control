@@ -1,79 +1,80 @@
 <resources>
     <string name="app_name">Nexus Control</string>
 
-    <!-- Botão de conexão -->
-    <string name="btn_connect">Conectar</string>
-    <string name="btn_disconnect">Desconectar</string>
+    <!-- Connection -->
+    <string name="btn_connect">Connect</string>
+    <string name="btn_disconnect">Disconnect</string>
 
-    <!-- MainActivity: títulos e labels -->
+    <!-- MainActivity: titles and labels -->
     <string name="title_remote">NEXUS</string>
     <string name="title_control">CONTROL</string>
-    <string name="section_conexao">CONEXÃO</string>
-    <string name="label_recent_ips">IPS RECENTES</string>
+    <string name="section_conexao">CONNECTION</string>
     <string name="section_volume">VOLUME</string>
-    <string name="section_midia">MÍDIA</string>
-    <string name="section_tela">TELA DO PC</string>
-    <string name="section_sistema">SISTEMA</string>
-    <string name="status_disconnected">● DESCONECTADO</string>
-    <string name="btn_conectar">CONECTAR</string>
+    <string name="section_midia">MEDIA</string>
+    <string name="section_tela">PC SCREEN</string>
+    <string name="section_sistema">SYSTEM</string>
+    <string name="status_disconnected">● DISCONNECTED</string>
+    <string name="btn_conectar">CONNECT</string>
 
-    <!-- MainActivity: hints dos campos -->
+    <!-- Input hints -->
     <string name="hint_ip">192.168.1.100</string>
     <string name="hint_port">8888</string>
 
-    <!-- MainActivity: botões de controle -->
+    <!-- Media buttons -->
     <string name="btn_vol_down">🔉</string>
     <string name="btn_mute">🔇</string>
     <string name="btn_vol_up">🔊</string>
+    <string name="btn_skip_back">-10s</string>
     <string name="btn_prev">⏮</string>
     <string name="btn_play">⏯</string>
     <string name="btn_next">⏭</string>
-    <string name="btn_screenshot">📸  CAPTURAR TELA</string>
-    <string name="btn_lock">🔒</string>
+    <string name="btn_skip_fwd">+10s</string>
+    <string name="btn_screenshot">📸  CAPTURE SCREEN</string>
+    <string name="btn_lock">🔐</string>
     <string name="btn_restart">🔄</string>
-    <string name="btn_shutdown">⏻</string>
-    <string name="btn_processos">⚙ Processos</string>
+    <string name="btn_shutdown">⛔</string>
+    <string name="btn_processos">⚙ Processes</string>
 
     <!-- ScreenshotViewer -->
-    <string name="loading">Carregando…</string>
+    <string name="loading">Loading…</string>
     <string name="counter_placeholder">— / —</string>
-    <string name="gesture_hint">Pinch para zoom • Arraste para navegar</string>
+    <string name="gesture_hint">Pinch to zoom • Drag to pan</string>
     <string name="screenshot_info">%1$s  •  %2$d × %3$dpx</string>
     <string name="screenshot_counter">%1$d / %2$d</string>
     <string name="monitor_default">Monitor %1$d</string>
-    <string name="error_no_image">Erro: nenhuma imagem recebida</string>
-    <string name="error_decode_image">Erro ao decodificar imagem</string>
-    <string name="error_create_file">Erro ao criar arquivo na galeria</string>
-    <string name="error_null_stream">Erro: stream de saída nulo</string>
-    <string name="save_success">✅ %1$s salvo</string>
-    <string name="error_save">Erro ao salvar: %1$s</string>
-    <string name="cd_close">Fechar</string>
-    <string name="cd_save">Salvar na galeria</string>
-    <string name="cd_prev">Monitor anterior</string>
-    <string name="cd_next">Próximo monitor</string>
+    <string name="error_no_image">Error: no image received</string>
+    <string name="error_decode_image">Error decoding image</string>
+    <string name="error_create_file">Error creating file in gallery</string>
+    <string name="error_null_stream">Error: null output stream</string>
+    <string name="save_success">✅ %1$s saved</string>
+    <string name="error_save">Error saving: %1$s</string>
+    <string name="cd_close">Close</string>
+    <string name="cd_save">Save to gallery</string>
+    <string name="cd_prev">Previous monitor</string>
+    <string name="cd_next">Next monitor</string>
 
     <!-- ProcessListActivity -->
-    <string name="title_processos">Processos</string>
-    <string name="search_hint">Buscar processo…</string>
-    <string name="no_processes">Nenhum processo encontrado</string>
-    <string name="btn_kill">Encerrar</string>
+    <string name="title_processos">Processes</string>
+    <string name="search_hint">Search process…</string>
+    <string name="no_processes">No processes found</string>
+    <string name="btn_kill">Kill</string>
     <string name="process_details">PID %1$d  •  %2$d MB</string>
-    <string name="kill_confirm_title">Encerrar processo</string>
-    <string name="kill_confirm_msg">Encerrar \"%1$s\"?</string>
-    <string name="kill_yes">Encerrar</string>
-    <string name="cancel">Cancelar</string>
-    <string name="disconnected">Desconectado: %1$s</string>
+    <string name="kill_confirm_title">Kill process</string>
+    <string name="kill_confirm_msg">Kill \"%1$s\"?</string>
+    <string name="kill_yes">Kill</string>
+    <string name="cancel">Cancel</string>
+    <string name="disconnected">Disconnected: %1$s</string>
 
     <!-- MouseKeyboardActivity -->
-    <string name="title_mouse_keyboard">Mouse e Teclado</string>
-    <string name="btn_mouse_keyboard">🖱 Mouse e Teclado</string>
-    <string name="btn_left_click">◀ Click Esq</string>
-    <string name="btn_right_click">Click Dir ▶</string>
-    <string name="btn_double_click">2x</string>
-    <string name="btn_show_keyboard">⌨ Mostrar Teclado</string>
-    <string name="btn_hide_keyboard">⌨ Ocultar Teclado</string>
-    <string name="keyboard_hint">Digite aqui…</string>
-    <!-- MouseKeyboardActivity: teclas especiais -->
+    <string name="title_mouse_keyboard">Mouse &amp; Keyboard</string>
+    <string name="btn_mouse_keyboard">🖱 Mouse &amp; Keyboard</string>
+    <string name="btn_left_click">◀ Left Click</string>
+    <string name="btn_right_click">Right Click ▶</string>
+    <string name="btn_double_click">2×</string>
+    <string name="btn_show_keyboard">⌨ Show Keyboard</string>
+    <string name="btn_hide_keyboard">⌨ Hide Keyboard</string>
+    <string name="keyboard_hint">Type here…</string>
+    <!-- Special keys -->
     <string name="key_esc">ESC</string>
     <string name="key_tab">TAB</string>
     <string name="key_enter">ENTER ↵</string>

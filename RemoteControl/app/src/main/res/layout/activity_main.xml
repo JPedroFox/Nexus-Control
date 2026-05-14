@@ -56,7 +56,7 @@
                 android:layout_marginTop="8dp"/>
         </LinearLayout>
 
-        <!-- ── CONEXÃO ─────────────────────────────────────────────────── -->
+        <!-- ── CONNECTION ──────────────────────────────────────────────── -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -128,40 +128,6 @@
                     android:background="@drawable/input_bg"
                     android:paddingStart="14dp"
                     android:paddingEnd="14dp"/>
-            </LinearLayout>
-
-            <!-- ── IPs RECENTES ──────────────────────────────────────────── -->
-            <LinearLayout
-                android:id="@+id/layoutRecentIps"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone"
-                android:layout_marginBottom="10dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/label_recent_ips"
-                    android:textColor="#444466"
-                    android:textSize="11sp"
-                    android:fontFamily="monospace"
-                    android:letterSpacing="0.2"
-                    android:layout_marginBottom="6dp"/>
-
-                <HorizontalScrollView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:scrollbars="none">
-
-                    <com.google.android.material.chip.ChipGroup
-                        android:id="@+id/chipGroupRecentIps"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        app:singleLine="true"
-                        app:chipSpacingHorizontal="4dp"/>
-
-                </HorizontalScrollView>
             </LinearLayout>
 
             <Button
@@ -237,7 +203,6 @@
                     android:layout_width="0dp"
                     android:layout_height="56dp"
                     android:layout_weight="1"
-                    android:maxWidth="320dp"
                     android:text="@string/btn_vol_down"
                     android:textSize="22sp"
                     android:textColor="#FFFFFF"
@@ -250,7 +215,6 @@
                     android:layout_width="0dp"
                     android:layout_height="56dp"
                     android:layout_weight="1"
-                    android:maxWidth="320dp"
                     android:text="@string/btn_mute"
                     android:textSize="22sp"
                     android:textColor="#FFFFFF"
@@ -263,7 +227,6 @@
                     android:layout_width="0dp"
                     android:layout_height="56dp"
                     android:layout_weight="1"
-                    android:maxWidth="320dp"
                     android:text="@string/btn_vol_up"
                     android:textSize="22sp"
                     android:textColor="#FFFFFF"
@@ -272,7 +235,7 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- ── MÍDIA ────────────────────────────────────────────────────── -->
+        <!-- ── MEDIA ────────────────────────────────────────────────────── -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -305,50 +268,85 @@
                     android:fontFamily="monospace"/>
             </LinearLayout>
 
+            <!--
+                Row 1: transport controls
+                [-10s]  [⏮]  [⏯]  [⏭]  [+10s]
+                Skip buttons are smaller weight so the play button stays prominent.
+            -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_horizontal"
+                android:layout_marginBottom="0dp"
                 tools:ignore="ButtonStyle">
 
+                <!-- -10s -->
+                <Button
+                    android:id="@+id/btnSkipBack"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_weight="1.2"
+                    android:text="@string/btn_skip_back"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="#00E676"
+                    app:backgroundTint="#0A1A0A"
+                    android:layout_marginEnd="4dp"
+                    tools:ignore="VisualLintButtonSize" />
+
+                <!-- Previous track -->
                 <Button
                     android:id="@+id/btnPrev"
                     android:layout_width="0dp"
                     android:layout_height="56dp"
                     android:layout_weight="1"
-                    android:maxWidth="320dp"
                     android:text="@string/btn_prev"
-                    android:textSize="22sp"
+                    android:textSize="20sp"
                     android:textColor="#FFFFFF"
                     app:backgroundTint="#16161F"
-                    android:layout_marginEnd="6dp"
+                    android:layout_marginEnd="4dp"
                     tools:ignore="VisualLintButtonSize" />
 
+                <!-- Play / Pause — slightly taller to stand out -->
                 <Button
                     android:id="@+id/btnPlay"
                     android:layout_width="0dp"
                     android:layout_height="64dp"
-                    android:layout_weight="1"
-                    android:maxWidth="320dp"
+                    android:layout_weight="1.4"
                     android:text="@string/btn_play"
                     android:textSize="26sp"
                     android:textColor="#FFFFFF"
                     app:backgroundTint="#1A2A1A"
-                    android:layout_marginEnd="6dp"
+                    android:layout_marginEnd="4dp"
                     tools:ignore="VisualLintButtonSize" />
 
+                <!-- Next track -->
                 <Button
                     android:id="@+id/btnNext"
                     android:layout_width="0dp"
                     android:layout_height="56dp"
                     android:layout_weight="1"
-                    android:maxWidth="320dp"
                     android:text="@string/btn_next"
-                    android:textSize="22sp"
+                    android:textSize="20sp"
                     android:textColor="#FFFFFF"
                     app:backgroundTint="#16161F"
+                    android:layout_marginEnd="4dp"
                     tools:ignore="VisualLintButtonSize" />
+
+                <!-- +10s -->
+                <Button
+                    android:id="@+id/btnSkipFwd"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_weight="1.2"
+                    android:text="@string/btn_skip_fwd"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="#00E676"
+                    app:backgroundTint="#0A1A0A"
+                    tools:ignore="VisualLintButtonSize" />
+
             </LinearLayout>
         </LinearLayout>
 
@@ -401,7 +399,7 @@
                 tools:ignore="VisualLintButtonSize" />
         </LinearLayout>
 
-        <!-- ── SISTEMA ──────────────────────────────────────────────────── -->
+        <!-- ── SYSTEM ───────────────────────────────────────────────────── -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -445,7 +443,6 @@
                     android:layout_width="0dp"
                     android:layout_height="52dp"
                     android:layout_weight="1"
-                    android:maxWidth="320dp"
                     android:text="@string/btn_lock"
                     android:textSize="20sp"
                     android:textColor="#FFFFFF"
@@ -458,7 +455,6 @@
                     android:layout_width="0dp"
                     android:layout_height="52dp"
                     android:layout_weight="1"
-                    android:maxWidth="320dp"
                     android:text="@string/btn_restart"
                     android:textSize="20sp"
                     android:textColor="#FFFFFF"
@@ -471,7 +467,6 @@
                     android:layout_width="0dp"
                     android:layout_height="52dp"
                     android:layout_weight="1"
-                    android:maxWidth="320dp"
                     android:text="@string/btn_shutdown"
                     android:textSize="20sp"
                     android:textColor="#FFFFFF"
@@ -480,8 +475,7 @@
             </LinearLayout>
         </LinearLayout>
 
-
-        <!-- ── PROCESSOS ────────────────────────────────────────────────── -->
+        <!-- ── PROCESSES ────────────────────────────────────────────────── -->
         <Button
             android:id="@+id/btnProcessos"
             android:layout_width="match_parent"
@@ -497,8 +491,7 @@
             android:layout_marginTop="12dp"
             tools:ignore="VisualLintButtonSize" />
 
-
-        <!-- ── MOUSE E TECLADO ──────────────────────────────────────────────── -->
+        <!-- ── MOUSE & KEYBOARD ─────────────────────────────────────────── -->
         <Button
             android:id="@+id/btnMouseKeyboard"
             android:layout_width="match_parent"
