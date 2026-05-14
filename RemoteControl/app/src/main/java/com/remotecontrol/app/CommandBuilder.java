@@ -2,7 +2,7 @@ package com.remotecontrol.app;
 
 /**
  * Builds the JSON strings the C# server expects to receive.
- * Centralises the protocol in one place — if the contract changes, change it here.
+ * Centralisiz the protocol in one place — if the contract changes, change it here.
  */
 public class CommandBuilder {
 

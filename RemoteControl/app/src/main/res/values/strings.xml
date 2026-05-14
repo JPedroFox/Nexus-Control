@@ -16,6 +16,8 @@
     <string name="status_disconnected">● DISCONNECTED</string>
     <string name="btn_conectar">CONNECT</string>
 
+    <string name="label_recent_ips">RECENT</string>
+
     <!-- Input hints -->
     <string name="hint_ip">192.168.1.100</string>
     <string name="hint_port">8888</string>

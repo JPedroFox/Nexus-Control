@@ -41,6 +41,7 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
 
     private Button btnVolUp, btnVolDown, btnMute;
     private Button btnPlay, btnNext, btnPrev;
+    private Button btnSkipForward, btnSkipBackward;
     private Button btnScreenshot;
     private Button btnLock, btnRestart, btnShutdown;
     private Button btnProcessos, btnMouseKeyboard;
@@ -92,6 +93,8 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
         btnPlay          = findViewById(R.id.btnPlay);
         btnNext          = findViewById(R.id.btnNext);
         btnPrev          = findViewById(R.id.btnPrev);
+        btnSkipForward   = findViewById(R.id.btnSkipForward);
+        btnSkipBackward  = findViewById(R.id.btnSkipBackward);
 
         btnScreenshot    = findViewById(R.id.btnScreenshot);
 
@@ -112,6 +115,8 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
         btnPlay.setOnClickListener(v       -> send(CommandBuilder.playPause()));
         btnNext.setOnClickListener(v       -> send(CommandBuilder.nextTrack()));
         btnPrev.setOnClickListener(v       -> send(CommandBuilder.prevTrack()));
+        btnSkipForward.setOnClickListener(v  -> send(CommandBuilder.skipForward()));
+        btnSkipBackward.setOnClickListener(v -> send(CommandBuilder.skipBackward()));
 
         btnScreenshot.setOnClickListener(v -> send(CommandBuilder.screenshot()));
 
@@ -228,6 +233,7 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
         btnVolUp.setEnabled(enabled);         btnVolDown.setEnabled(enabled);
         btnMute.setEnabled(enabled);          btnPlay.setEnabled(enabled);
         btnNext.setEnabled(enabled);          btnPrev.setEnabled(enabled);
+        btnSkipForward.setEnabled(enabled);   btnSkipBackward.setEnabled(enabled);
         btnScreenshot.setEnabled(enabled);    btnLock.setEnabled(enabled);
         btnRestart.setEnabled(enabled);       btnShutdown.setEnabled(enabled);
         btnProcessos.setEnabled(enabled);     btnMouseKeyboard.setEnabled(enabled);
