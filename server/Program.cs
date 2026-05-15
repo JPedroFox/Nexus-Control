@@ -10,10 +10,10 @@ namespace RemoteServer
     {
         public const int SERVER_PORT = 8888;
 
-        // Deve ser chamado ANTES de qualquer acesso a Screen, Graphics ou Forms.
+        // Must be called BEFORE any access to Screen, Graphics or Forms.
         // DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 = -4
-        // Sem isso, mesmo com app.manifest, o .NET runtime pode já ter inicializado
-        // o processo em modo virtualizado antes do manifesto ser lido.
+        // Without this, even with app.manifest, the .NET runtime may have already
+        // initialized the process in virtualized mode before the manifest is read.
         [DllImport("user32.dll")]
         private static extern bool SetProcessDpiAwarenessContext(IntPtr value);
 
@@ -23,7 +23,7 @@ namespace RemoteServer
         [STAThread]
         static void Main()
         {
-            // ⚠️ Primeira linha do programa — antes de qualquer WinForms init
+            // ⚠️ First line of the program — before any WinForms initialization
             SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
             AppDomain.CurrentDomain.UnhandledException += (s, e) =>
@@ -31,7 +31,7 @@ namespace RemoteServer
                 File.WriteAllText("crash.log", e.ExceptionObject.ToString());
                 MessageBox.Show(
                     e.ExceptionObject.ToString(),
-                    "Erro ao iniciar",
+                    "Startup Error",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error
                 );
@@ -49,7 +49,7 @@ namespace RemoteServer
                 File.WriteAllText("crash.log", ex.ToString());
                 MessageBox.Show(
                     ex.ToString(),
-                    "Erro ao iniciar",
+                    "Startup Error",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error
                 );

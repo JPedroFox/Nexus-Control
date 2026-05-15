@@ -10,8 +10,8 @@ echo.
 
 where dotnet >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [ERRO] .NET SDK nao encontrado.
-    echo Instale em: https://dotnet.microsoft.com/download
+    echo [ERROR] .NET SDK not found.
+    echo Install from: https://dotnet.microsoft.com/download
     echo.
     pause
     exit /b 1
@@ -21,34 +21,47 @@ for /f "tokens=*" %%v in ('dotnet --version') do set DOTNET_VER=%%v
 echo .NET SDK: v%DOTNET_VER%
 echo.
 
-:: Captura o diretorio do bat SEM barra final e SEM aspas
-:: %~dp0 termina com \ - o TrimEnd no PS cuida disso, mas passamos sem aspas
-:: para evitar o bug de \ escapar a aspa de fechamento no cmd
+:: Capture the bat directory WITHOUT trailing backslash and WITHOUT quotes
+:: %~dp0 ends with \ — the TrimEnd in PS handles it, but we pass without quotes
+:: to avoid the bug where \ escapes the closing quote in cmd
 set PROJ_DIR=%~dp0
 set PROJ_DIR=%PROJ_DIR:~0,-1%
 
-echo Gerando icone...
+:: Kill any running instance to avoid UnauthorizedAccessException during publish
+echo Checking for running process...
+tasklist /fi "imagename eq NexusControl.exe" 2>nul | find /i "NexusControl.exe" >nul
+if %errorlevel% equ 0 (
+    echo Stopping NexusControl.exe...
+    taskkill /f /im NexusControl.exe >nul 2>&1
+    timeout /t 1 /nobreak >nul
+    echo Process stopped.
+) else (
+    echo No running instance found.
+)
+echo.
+
+echo Generating icon...
 powershell -NoProfile -ExecutionPolicy Bypass -File "%PROJ_DIR%\generate_icon.ps1" "%PROJ_DIR%"
 if %errorlevel% neq 0 (
-    echo [ERRO] PowerShell retornou erro ao gerar icone.
+    echo [ERROR] PowerShell returned an error while generating the icon.
     pause
     exit /b 1
 )
 if not exist "%PROJ_DIR%\nexus.ico" (
-    echo [ERRO] nexus.ico nao foi criado.
+    echo [ERROR] nexus.ico was not created.
     pause
     exit /b 1
 )
-echo Icone OK.
+echo Icon OK.
 echo.
 
 set OUT=%PROJ_DIR%\dist
 
-echo Limpando build anterior...
+echo Cleaning previous build...
 if exist "%OUT%" rmdir /s /q "%OUT%"
 echo.
 
-echo Compilando...
+echo Compiling...
 echo.
 
 dotnet publish "%PROJ_DIR%\NexusControl.csproj" ^
@@ -62,7 +75,7 @@ dotnet publish "%PROJ_DIR%\NexusControl.csproj" ^
 
 if %errorlevel% neq 0 (
     echo.
-    echo [ERRO] Build falhou.
+    echo [ERROR] Build failed.
     echo.
     pause
     exit /b 1
@@ -72,10 +85,10 @@ del /q "%OUT%\*.pdb" 2>nul
 
 echo.
 echo  ==========================
-echo   Build concluido!
+echo   Build complete!
 echo  ==========================
 echo.
-echo Arquivo: %OUT%\NexusControl.exe
+echo Output: %OUT%\NexusControl.exe
 echo.
 explorer "%OUT%"
 pause

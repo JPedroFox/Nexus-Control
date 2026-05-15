@@ -9,36 +9,36 @@
     <AssemblyName>NexusControl</AssemblyName>
     <RootNamespace>RemoteServer</RootNamespace>
 
-    <!-- Metadados visíveis no Gerenciador de Tarefas e Propriedades do .exe -->
+    <!-- Metadata visible in Task Manager and .exe Properties -->
     <AssemblyTitle>Nexus Control</AssemblyTitle>
-    <AssemblyDescription>Servidor de controle remoto via Android</AssemblyDescription>
+    <AssemblyDescription>Remote control server for Android</AssemblyDescription>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
     <Company>Nexus Control</Company>
     <Product>Nexus Control</Product>
 
-    <!-- ── Publicação Single-File Self-Contained ──────────────────────────────
-         PublishSingleFile              → tudo num único .exe (dlls, resources)
-         SelfContained                  → embute o runtime .NET — sem instalação
+    <!-- ── Single-File Self-Contained Publish ───────────────────────────────
+         PublishSingleFile              → bundle everything into one .exe
+         SelfContained                  → embed the .NET runtime — no install needed
          RuntimeIdentifier              → Windows 64-bit
-         PublishTrimmed                 → false: trimming quebra reflexão do Json
-         IncludeNativeLibraries...      → extrai dlls nativas (NAudio/WASAPI)
-    ─────────────────────────────────────────────────────────────────────────-->
+         PublishTrimmed                 → false: trimming breaks Json reflection
+         IncludeNativeLibraries...      → extract native dlls (NAudio/WASAPI)
+    ────────────────────────────────────────────────────────────────────────-->
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <PublishTrimmed>false</PublishTrimmed>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
 
-    <!-- Manifesto: DPI awareness + sem prompt de UAC -->
+    <!-- Manifest: DPI awareness + no UAC prompt -->
     <ApplicationIcon>nexus.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Parse de JSON entre C# e Java -->
+    <!-- JSON parsing between C# and Java -->
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <!-- Controle de volume via API do Windows -->
+    <!-- Volume control via Windows API -->
     <PackageReference Include="NAudio" Version="2.2.1" />
   </ItemGroup>
 

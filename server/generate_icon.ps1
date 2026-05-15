@@ -1,6 +1,6 @@
 param([string]$ProjectDir)
 
-# Normaliza o caminho - remove aspas e barra final que o cmd injeta
+# Normalize the path — remove quotes and trailing slashes injected by cmd
 $ProjectDir = $ProjectDir.Trim('"').TrimEnd('\').TrimEnd('/')
 if (-not $ProjectDir) { $ProjectDir = $PSScriptRoot }
 
@@ -19,7 +19,7 @@ function New-NexusBitmap {
     $cyan = [System.Drawing.Color]::FromArgb(255, 0, 229, 255)
     $dim  = [System.Drawing.Color]::FromArgb(80,  0, 229, 255)
 
-    # Fundo arredondado
+    # Rounded background
     [int]$radius = [Math]::Max(2, [int]($size * 0.15))
     [int]$d      = $radius * 2
     $path = New-Object System.Drawing.Drawing2D.GraphicsPath
@@ -35,7 +35,7 @@ function New-NexusBitmap {
     $g.FillPath($bgBrush, $path)
     $g.DrawPath($borderPen, $path)
 
-    # Letra N
+    # Letter N
     [int]$fontSize = [Math]::Max(6, [int]($size * 0.55))
     $font = New-Object System.Drawing.Font("Arial", $fontSize, [System.Drawing.FontStyle]::Bold, [System.Drawing.GraphicsUnit]::Pixel)
     $sf   = New-Object System.Drawing.StringFormat
@@ -44,7 +44,7 @@ function New-NexusBitmap {
     $rect = New-Object System.Drawing.RectangleF(0, 0, $size, $size)
     $g.DrawString("N", $font, $cBrush, $rect, $sf)
 
-    # Nos nos cantos - usa variaveis int explicitas, sem array arithmetic
+    # Corner nodes — uses explicit int variables to avoid array arithmetic issues
     if ($size -ge 32) {
         [int]$nr  = [Math]::Max(2, [int]($size * 0.09))
         [int]$mg  = [int]($size * 0.15)
@@ -92,12 +92,12 @@ function Write-IcoFile {
     foreach ($img in $images) {
         [int]$s = $img.Size
         if ($s -ge 256) { [byte]$bval = 0 } else { [byte]$bval = [byte]$s }
-        $writer.Write([byte]$bval)           # width
-        $writer.Write([byte]$bval)           # height
-        $writer.Write([byte]0)               # color count
-        $writer.Write([byte]0)               # reserved
-        $writer.Write([uint16]1)             # planes
-        $writer.Write([uint16]32)            # bpp
+        $writer.Write([byte]$bval)      # width
+        $writer.Write([byte]$bval)      # height
+        $writer.Write([byte]0)          # color count
+        $writer.Write([byte]0)          # reserved
+        $writer.Write([uint16]1)        # planes
+        $writer.Write([uint16]32)       # bpp
         $writer.Write([uint32]$img.Data.Length)
         $writer.Write([uint32]$dataOffset)
         $dataOffset += $img.Data.Length
@@ -115,4 +115,4 @@ function Write-IcoFile {
 
 $out = Join-Path $ProjectDir "nexus.ico"
 Write-IcoFile -outputPath $out -sizes @(16, 32, 48)
-Write-Host "Icone salvo: $out"
+Write-Host "Icon saved: $out"
