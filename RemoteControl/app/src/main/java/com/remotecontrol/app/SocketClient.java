@@ -25,13 +25,14 @@ public class SocketClient {
     private static final int    RECONNECT_DELAY = 3000;
     private static final int    MAX_RECONNECTS  = 5;
 
-    // Dados de uma captura individual de monitor
+    // ─── MODELOS ──────────────────────────────────────────────────────────────
+
     public static class ScreenshotCaptura {
-        public final int    monitor;
+        public final int     monitor;
         public final boolean primaria;
-        public final int    largura;
-        public final int    altura;
-        public final byte[] imageBytes;
+        public final int     largura;
+        public final int     altura;
+        public final byte[]  imageBytes;
 
         public ScreenshotCaptura(int monitor, boolean primaria, int largura, int altura, byte[] imageBytes) {
             this.monitor    = monitor;
@@ -46,16 +47,6 @@ public class SocketClient {
         }
     }
 
-    public interface SocketListener {
-        void onConnected();
-        void onDisconnected(String reason);
-        void onMessageReceived(String json);
-        void onScreenshotsReceived(List<ScreenshotCaptura> capturas);
-        void onProcessListReceived(List<ProcessInfo> processos);
-        void onError(String message);
-    }
-
-    // Dados de um processo do Windows
     public static class ProcessInfo {
         public final String nome;
         public final int    pid;
@@ -70,15 +61,43 @@ public class SocketClient {
         }
     }
 
+    // ─── LISTENER ─────────────────────────────────────────────────────────────
+
+    public interface SocketListener {
+        void onConnected();
+        void onDisconnected(String reason);
+        void onMessageReceived(String json);
+        void onScreenshotsReceived(List<ScreenshotCaptura> capturas);
+        void onProcessListReceived(List<ProcessInfo> processos);
+        void onError(String message);
+
+        /**
+         * Chamado quando o servidor exige PIN para autorizar este dispositivo.
+         * A Activity deve mostrar um dialog e chamar submitPin(pin) com o valor digitado.
+         */
+        void onPinRequired();
+
+        /**
+         * Chamado quando o PIN foi recusado pelo servidor.
+         * A Activity deve notificar o usuário e encerrar a conexão se necessário.
+         */
+        void onAuthFailed();
+    }
+
+    // ─── ESTADO ───────────────────────────────────────────────────────────────
+
     private final Handler uiHandler = new Handler(Looper.getMainLooper());
 
     private Socket         socket;
     private PrintWriter    writer;
     private BufferedReader reader;
 
-    private String serverIp;
-    private int    serverPort;
-    private SocketListener listener; // não-final: ProcessListActivity pode assumir temporariamente
+    private String         serverIp;
+    private int            serverPort;
+    private SocketListener listener;
+
+    // PIN pendente: definido pela Activity antes de submitPin() enviar
+    private volatile String pendingPin = null;
 
     private volatile boolean shouldReconnect = false;
     private int reconnectTries = 0;
@@ -87,19 +106,29 @@ public class SocketClient {
         this.listener = listener;
     }
 
-    /** Troca o listener em runtime — usado por ProcessListActivity */
     public void setListener(SocketListener listener) {
         this.listener = listener;
     }
 
     // ─── CONEXÃO ──────────────────────────────────────────────────────────────
 
-    public void connect(String ip, int port) {
+    public void connect(String ip, int port, String pin) {
         this.serverIp        = ip;
         this.serverPort      = port;
+        this.pendingPin      = pin;           // pode ser null se ainda não sabe
         this.shouldReconnect = true;
         this.reconnectTries  = 0;
         new Thread(this::connectInternal, "SocketConnect").start();
+    }
+
+    /**
+     * Chamado pela Activity após o usuário digitar o PIN no dialog.
+     * Envia o comando de autenticação ao servidor.
+     */
+    public void submitPin(String pin) {
+        this.pendingPin = pin;
+        // Envia o JSON de autenticação diretamente na thread de envio
+        sendRaw("{\"cmd\":\"AUTH\",\"pin\":\"" + pin + "\"}");
     }
 
     private void connectInternal() {
@@ -108,12 +137,10 @@ public class SocketClient {
             socket.connect(new InetSocketAddress(serverIp, serverPort), TIMEOUT_MS);
             socket.setSoTimeout(0);
 
-            // Buffer maior para suportar JSON com múltiplos screenshots (pode ser vários MB)
             writer = new PrintWriter(socket.getOutputStream(), true);
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()), 1024 * 1024);
 
             reconnectTries = 0;
-            uiHandler.post(listener::onConnected);
             listenLoop();
         } catch (IOException e) {
             uiHandler.post(() -> listener.onError("Falha ao conectar: " + e.getMessage()));
@@ -121,21 +148,16 @@ public class SocketClient {
         }
     }
 
+    // ─── LOOP DE LEITURA ──────────────────────────────────────────────────────
+
     private void listenLoop() {
         try {
             String line;
             while ((line = reader.readLine()) != null) {
                 final String msg = line.trim();
                 if (msg.isEmpty()) continue;
-                if (msg.contains("\"CONNECTED\"")) continue;
 
-                if (msg.contains("\"capturas\"")) {
-                    handleScreenshots(msg);
-                } else if (msg.contains("\"processos\"")) {
-                    handleProcessList(msg);
-                } else {
-                    uiHandler.post(() -> listener.onMessageReceived(msg));
-                }
+                handleMessage(msg);
             }
             uiHandler.post(() -> listener.onDisconnected("Servidor desconectou"));
             tryReconnect();
@@ -147,11 +169,49 @@ public class SocketClient {
         }
     }
 
-    /**
-     * Parseia o JSON com array de capturas e decodifica cada imagem Base64.
-     * Formato esperado:
-     * {"status":"OK","telas":2,"capturas":[{"monitor":1,"primaria":true,"largura":1920,"altura":1080,"dados":"..."},...]}"
-     */
+    private void handleMessage(String msg) {
+        // ── Handshake inicial ─────────────────────────────────────────────────
+        if (msg.contains("\"CONNECTED\"")) {
+            if (msg.contains("\"PIN_REQUIRED\"")) {
+                // Servidor quer autenticação
+                if (pendingPin != null && !pendingPin.isEmpty()) {
+                    // Já temos o PIN (usuário digitou antes de conectar) → envia direto
+                    sendRaw("{\"cmd\":\"AUTH\",\"pin\":\"" + pendingPin + "\"}");
+                } else {
+                    // Pede ao usuário
+                    uiHandler.post(() -> listener.onPinRequired());
+                }
+            } else {
+                // Dispositivo já estava autorizado (reconexão)
+                uiHandler.post(listener::onConnected);
+            }
+            return;
+        }
+
+        // ── Resposta de autenticação ───────────────────────────────────────────
+        if (msg.contains("\"AUTH_OK\"")) {
+            uiHandler.post(listener::onConnected);
+            return;
+        }
+
+        if (msg.contains("\"AUTH_FAIL\"")) {
+            uiHandler.post(listener::onAuthFailed);
+            disconnect();
+            return;
+        }
+
+        // ── Respostas de comandos normais ─────────────────────────────────────
+        if (msg.contains("\"capturas\"")) {
+            handleScreenshots(msg);
+        } else if (msg.contains("\"processos\"")) {
+            handleProcessList(msg);
+        } else {
+            uiHandler.post(() -> listener.onMessageReceived(msg));
+        }
+    }
+
+    // ─── PARSERS ──────────────────────────────────────────────────────────────
+
     private void handleScreenshots(String json) {
         try {
             JsonObject root     = JsonParser.parseString(json).getAsJsonObject();
@@ -169,7 +229,6 @@ public class SocketClient {
                         imageBytes
                 ));
             }
-
             uiHandler.post(() -> listener.onScreenshotsReceived(lista));
         } catch (Exception e) {
             Log.e(TAG, "Erro ao parsear screenshots: " + e.getMessage());
@@ -187,7 +246,7 @@ public class SocketClient {
                 lista.add(new ProcessInfo(
                         p.get("nome").getAsString(),
                         p.get("pid").getAsInt(),
-                        p.get("mem_mb").getAsLong(),
+                        p.get("mem").getAsLong(),
                         p.has("janela") ? p.get("janela").getAsString() : ""
                 ));
             }
@@ -204,6 +263,11 @@ public class SocketClient {
             uiHandler.post(() -> listener.onError("Não conectado"));
             return;
         }
+        sendRaw(jsonCommand);
+    }
+
+    /** Envia sem verificar estado — usado internamente para auth. */
+    private void sendRaw(String jsonCommand) {
         new Thread(() -> {
             if (writer != null) writer.println(jsonCommand);
         }, "SocketSend").start();
@@ -213,6 +277,7 @@ public class SocketClient {
 
     public void disconnect() {
         shouldReconnect = false;
+        pendingPin      = null;
         try {
             if (socket != null && !socket.isClosed()) socket.close();
         } catch (IOException ignored) {}

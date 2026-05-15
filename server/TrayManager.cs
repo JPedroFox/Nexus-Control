@@ -9,33 +9,48 @@ using System.Windows.Forms;
 namespace RemoteServer
 {
     /// <summary>
-    /// Gerencia o ícone na bandeja do sistema (System Tray / Notification Area).
-    /// Mantém o app vivo sem janela visível e exibe o IP para o usuário apontar no celular.
+    /// Manages the system tray icon (Notification Area).
+    /// On startup, displays a window with the IP, port and session PIN.
+    /// The PIN is also accessible via the tray icon context menu.
     /// </summary>
     public class TrayManager : ApplicationContext
     {
-        private readonly NotifyIcon _trayIcon;
-        private readonly ContextMenuStrip _menu;
-        private readonly SocketServer _server;
+        private readonly NotifyIcon        _trayIcon;
+        private readonly ContextMenuStrip  _menu;
+        private readonly SocketServer      _server;
         private readonly ToolStripMenuItem _statusItem;
+        private readonly ToolStripMenuItem _pinItem;
 
         public TrayManager(SocketServer server)
         {
             _server = server;
-
-            // Escuta eventos de status do servidor para atualizar o tooltip
             _server.OnStatusChanged += UpdateStatus;
+            _server.OnPinChanged    += UpdatePin;
 
-            // ── Menu de contexto (clique direito no ícone) ──────────────────
-            _statusItem = new ToolStripMenuItem("Iniciando...") { Enabled = false };
+            string ip  = GetLocalIpAddress();
+            string pin = _server.SessionPin;
 
-            ToolStripMenuItem ipItem   = new ToolStripMenuItem($"IP: {GetLocalIpAddress()}") { Enabled = false };
-            ToolStripMenuItem portItem = new ToolStripMenuItem($"Porta: {Program.SERVER_PORT}") { Enabled = false };
+            // ── Context menu ──────────────────────────────────────────────────
+            _statusItem = new ToolStripMenuItem("Starting...") { Enabled = false };
+            _pinItem    = new ToolStripMenuItem($"PIN: {pin}")
+            {
+                Enabled = false,
+                Font    = new Font("Consolas", 11f, FontStyle.Bold)
+            };
 
-            ToolStripMenuItem copyIpItem = new ToolStripMenuItem("Copiar IP");
-            copyIpItem.Click += (s, e) => Clipboard.SetText(GetLocalIpAddress());
+            ToolStripMenuItem ipItem   = new ToolStripMenuItem($"IP: {ip}")              { Enabled = false };
+            ToolStripMenuItem portItem = new ToolStripMenuItem($"Port: {Program.SERVER_PORT}") { Enabled = false };
 
-            ToolStripMenuItem exitItem = new ToolStripMenuItem("Encerrar Nexus Control");
+            ToolStripMenuItem copyIpItem  = new ToolStripMenuItem("Copy IP");
+            copyIpItem.Click += (s, e) => Clipboard.SetText(ip);
+
+            ToolStripMenuItem copyPinItem = new ToolStripMenuItem("Copy PIN");
+            copyPinItem.Click += (s, e) => Clipboard.SetText(_server.SessionPin);
+
+            ToolStripMenuItem showInfoItem = new ToolStripMenuItem("Show IP / PIN...");
+            showInfoItem.Click += (s, e) => ShowInfoDialog();
+
+            ToolStripMenuItem exitItem = new ToolStripMenuItem("Exit Nexus Control");
             exitItem.Click += OnExit;
 
             _menu = new ContextMenuStrip();
@@ -43,32 +58,27 @@ namespace RemoteServer
             _menu.Items.Add(new ToolStripSeparator());
             _menu.Items.Add(ipItem);
             _menu.Items.Add(portItem);
+            _menu.Items.Add(_pinItem);
+            _menu.Items.Add(new ToolStripSeparator());
             _menu.Items.Add(copyIpItem);
+            _menu.Items.Add(copyPinItem);
+            _menu.Items.Add(showInfoItem);
             _menu.Items.Add(new ToolStripSeparator());
             _menu.Items.Add(exitItem);
 
-            // ── Ícone na bandeja ─────────────────────────────────────────────
+            // ── Tray icon ─────────────────────────────────────────────────────
             _trayIcon = new NotifyIcon
             {
                 Icon             = CreateNexusIcon(),
-                Text             = $"Nexus Control — Porta {Program.SERVER_PORT}",
+                Text             = $"Nexus Control — Port {Program.SERVER_PORT}",
                 ContextMenuStrip = _menu,
                 Visible          = true
             };
 
-            // Clique duplo → mostra o IP em uma mensagem rápida
-            _trayIcon.DoubleClick += (s, e) =>
-            {
-                MessageBox.Show(
-                    $"Nexus Control ativo!\n\nIP:    {GetLocalIpAddress()}\nPorta: {Program.SERVER_PORT}\n\n" +
-                    "Use esses dados no app Android para conectar.",
-                    "Nexus Control",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information
-                );
-            };
+            // Double-click → open info window
+            _trayIcon.DoubleClick += (s, e) => ShowInfoDialog();
 
-            // ✅ _trayIcon já está pronto — agora é seguro subir a thread do servidor
+            // ✅ Icon ready — start the server thread
             Thread serverThread = new Thread(_server.Start)
             {
                 IsBackground = true,
@@ -76,10 +86,159 @@ namespace RemoteServer
             };
             serverThread.Start();
 
-            UpdateStatus($"Aguardando conexão na porta {Program.SERVER_PORT}...");
+            UpdateStatus($"Waiting for connection on port {Program.SERVER_PORT}...");
+
+            // Show info window on startup
+            ShowInfoDialog();
         }
 
-        // ─── EVENTOS ──────────────────────────────────────────────────────────
+        // ─── INFO WINDOW ──────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Styled window showing IP, port and PIN so the user can configure the app.
+        /// </summary>
+        private void ShowInfoDialog()
+        {
+            string ip  = GetLocalIpAddress();
+            string pin = _server.SessionPin;
+
+            using Form dlg = new Form
+            {
+                Text            = "Nexus Control — Connection Info",
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                StartPosition   = FormStartPosition.CenterScreen,
+                MaximizeBox     = false,
+                MinimizeBox     = false,
+                BackColor       = Color.FromArgb(13, 13, 26),
+                ForeColor       = Color.White,
+                Width           = 360,
+                Height          = 310,
+                ShowInTaskbar   = true,
+            };
+
+            Label lblTitle = new Label
+            {
+                Text      = "NEXUS CONTROL",
+                Font      = new Font("Consolas", 16f, FontStyle.Bold),
+                ForeColor = Color.FromArgb(0, 229, 255),
+                AutoSize  = false,
+                Width     = 320,
+                Height    = 30,
+                Left      = 20,
+                Top       = 18,
+                TextAlign = ContentAlignment.MiddleCenter,
+            };
+
+            Label lblSub = new Label
+            {
+                Text      = "Enter the details below in the Android app",
+                Font      = new Font("Segoe UI", 9f),
+                ForeColor = Color.FromArgb(150, 170, 190),
+                AutoSize  = false,
+                Width     = 320,
+                Height    = 18,
+                Left      = 20,
+                Top       = 50,
+                TextAlign = ContentAlignment.MiddleCenter,
+            };
+
+            Panel sep = new Panel
+            {
+                BackColor = Color.FromArgb(0, 229, 255, 40),
+                Left = 20, Top = 74, Width = 320, Height = 1,
+            };
+
+            Control[] rows = BuildInfoRows(90, ip, pin, out int rowY);
+
+            Button btnOk = new Button
+            {
+                Text         = "OK",
+                DialogResult = DialogResult.OK,
+                Left         = 130,
+                Top          = rowY + 12,
+                Width        = 100,
+                Height       = 34,
+                BackColor    = Color.FromArgb(0, 229, 255),
+                ForeColor    = Color.Black,
+                FlatStyle    = FlatStyle.Flat,
+                Font         = new Font("Consolas", 10f, FontStyle.Bold),
+            };
+            btnOk.FlatAppearance.BorderSize = 0;
+
+            dlg.Controls.Add(lblTitle);
+            dlg.Controls.Add(lblSub);
+            dlg.Controls.Add(sep);
+            foreach (Control c in rows) dlg.Controls.Add(c);
+            dlg.Controls.Add(btnOk);
+            dlg.AcceptButton = btnOk;
+
+            dlg.ShowDialog();
+        }
+
+        /// <summary>Builds the IP / Port / PIN label rows inside the info window.</summary>
+        private static Control[] BuildInfoRows(int startY, string ip, string pin, out int finalY)
+        {
+            var controls = new System.Collections.Generic.List<Control>();
+            int y = startY;
+
+            // Static local function — captures nothing from the outer scope
+            static (Label lbl, Label val) MakeRow(string label, string value, Color accent, int top)
+            {
+                return (
+                    new Label
+                    {
+                        Text      = label,
+                        Font      = new Font("Segoe UI", 9f),
+                        ForeColor = Color.FromArgb(130, 150, 170),
+                        Left = 24, Top = top, Width = 60, Height = 20,
+                        TextAlign = ContentAlignment.MiddleLeft,
+                    },
+                    new Label
+                    {
+                        Text      = value,
+                        Font      = new Font("Consolas", 13f, FontStyle.Bold),
+                        ForeColor = accent,
+                        Left = 90, Top = top - 2, Width = 220, Height = 26,
+                        TextAlign = ContentAlignment.MiddleLeft,
+                    }
+                );
+            }
+
+            Color cyan   = Color.FromArgb(0, 229, 255);
+            Color white  = Color.White;
+            Color yellow = Color.FromArgb(255, 214, 0);
+
+            var (l1, v1) = MakeRow("IP",   ip,                             white, y);
+            controls.Add(l1); controls.Add(v1); y += 36;
+
+            var (l2, v2) = MakeRow("Port", Program.SERVER_PORT.ToString(), cyan,  y);
+            controls.Add(l2); controls.Add(v2); y += 36;
+
+            // Separator before PIN
+            controls.Add(new Panel
+            {
+                BackColor = Color.FromArgb(30, 255, 255, 255),
+                Left = 20, Top = y, Width = 320, Height = 1,
+            });
+            y += 10;
+
+            controls.Add(new Label
+            {
+                Text      = "Session PIN (expires when the server closes)",
+                Font      = new Font("Segoe UI", 8f),
+                ForeColor = Color.FromArgb(120, 140, 160),
+                Left = 24, Top = y, Width = 310, Height = 16,
+            });
+            y += 18;
+
+            var (l3, v3) = MakeRow("PIN", pin, yellow, y);
+            controls.Add(l3); controls.Add(v3); y += 36;
+
+            finalY = y;
+            return controls.ToArray();
+        }
+
+        // ─── EVENTS ───────────────────────────────────────────────────────────
 
         private void UpdateStatus(string message)
         {
@@ -92,7 +251,8 @@ namespace RemoteServer
             _statusItem.Text = message;
             _trayIcon.Text   = $"Nexus Control — {message}";
 
-            if (message.Contains("conectado") || message.Contains("desconectado"))
+            if (message.Contains("connected")    || message.Contains("disconnected") ||
+                message.Contains("authorized")   || message.Contains("failed"))
             {
                 _trayIcon.ShowBalloonTip(
                     timeout:  3000,
@@ -101,6 +261,28 @@ namespace RemoteServer
                     tipIcon:  ToolTipIcon.Info
                 );
             }
+        }
+
+        /// <summary>
+        /// Updates the PIN menu item and shows a balloon tip with the new code.
+        /// Called from the server thread — marshals to the UI thread.
+        /// </summary>
+        private void UpdatePin(string newPin)
+        {
+            if (_menu.InvokeRequired)
+            {
+                _menu.Invoke(() => UpdatePin(newPin));
+                return;
+            }
+
+            _pinItem.Text = $"PIN: {newPin}";
+
+            _trayIcon.ShowBalloonTip(
+                timeout:  5000,
+                tipTitle: "Nexus Control — New PIN",
+                tipText:  $"Next device must use PIN: {newPin}",
+                tipIcon:  ToolTipIcon.Info
+            );
         }
 
         private void OnExit(object? sender, EventArgs e)
@@ -123,26 +305,12 @@ namespace RemoteServer
             }
             catch
             {
-                return "IP não encontrado";
+                return "IP not found";
             }
         }
 
-        // ─── ÍCONE ────────────────────────────────────────────────────────────
+        // ─── ICON ─────────────────────────────────────────────────────────────
 
-        /// <summary>
-        /// Gera o ícone do Nexus Control programaticamente em 32×32px.
-        ///
-        /// Design:
-        ///  • Fundo escuro (#0D0D1A) com cantos arredondados
-        ///  • Borda fina em cyan translúcido
-        ///  • "N" bold centralizado em cyan (#00E5FF)
-        ///  • 4 nós de conexão nos cantos (identidade visual "nexus")
-        ///
-        /// Por que programático e não um .ico externo?
-        ///  Num publish single-file os recursos embutidos via ApplicationIcon
-        ///  exigem configuração extra de EmbeddedResource. Gerar em código
-        ///  garante que funciona sem nenhum arquivo adicional.
-        /// </summary>
         private static Icon CreateNexusIcon()
         {
             const int SIZE = 32;
@@ -150,47 +318,40 @@ namespace RemoteServer
             using Bitmap  bmp = new Bitmap(SIZE, SIZE);
             using Graphics g  = Graphics.FromImage(bmp);
 
-            g.SmoothingMode      = SmoothingMode.AntiAlias;
-            g.TextRenderingHint  = TextRenderingHint.AntiAlias;
-            g.InterpolationMode  = InterpolationMode.HighQualityBicubic;
+            g.SmoothingMode     = SmoothingMode.AntiAlias;
+            g.TextRenderingHint = TextRenderingHint.AntiAlias;
+            g.InterpolationMode = InterpolationMode.HighQualityBicubic;
             g.Clear(Color.Transparent);
 
-            // ── Paleta ────────────────────────────────────────────────────────
-            Color bgColor     = Color.FromArgb(255,  13,  13,  26); // #0D0D1A
-            Color cyanColor   = Color.FromArgb(255,   0, 229, 255); // #00E5FF
-            Color cyanDim     = Color.FromArgb( 80,   0, 229, 255); // #00E5FF @ 31%
-            Color cyanGlow    = Color.FromArgb( 40,   0, 229, 255); // #00E5FF @ 16%
+            Color bgColor   = Color.FromArgb(255,  13,  13,  26);
+            Color cyanColor = Color.FromArgb(255,   0, 229, 255);
+            Color cyanDim   = Color.FromArgb( 80,   0, 229, 255);
+            Color cyanGlow  = Color.FromArgb( 40,   0, 229, 255);
 
             var bounds = new Rectangle(0, 0, SIZE, SIZE);
 
-            // ── Fundo com cantos arredondados ─────────────────────────────────
             using GraphicsPath bgPath = RoundedRect(bounds, radius: 5);
             using SolidBrush bgBrush  = new SolidBrush(bgColor);
             g.FillPath(bgBrush, bgPath);
 
-            // ── Borda cyan fina ───────────────────────────────────────────────
             using Pen borderPen = new Pen(cyanDim, 1f);
             g.DrawPath(borderPen, bgPath);
 
-            // ── "N" centralizado ──────────────────────────────────────────────
-            using Font font        = new Font("Arial", 17, FontStyle.Bold, GraphicsUnit.Pixel);
+            using Font font         = new Font("Arial", 17, FontStyle.Bold, GraphicsUnit.Pixel);
             using SolidBrush cBrush = new SolidBrush(cyanColor);
             var sf = new StringFormat
             {
                 Alignment     = StringAlignment.Center,
                 LineAlignment = StringAlignment.Center
             };
-            // Leve sombra/glow atrás da letra
             using SolidBrush glowBrush = new SolidBrush(cyanGlow);
             g.DrawString("N", font, glowBrush, new RectangleF(-1, -1, SIZE + 2, SIZE + 2), sf);
             g.DrawString("N", font, glowBrush, new RectangleF( 1,  1, SIZE + 2, SIZE + 2), sf);
             g.DrawString("N", font, cBrush,    new RectangleF(0, 0, SIZE, SIZE), sf);
 
-            // ── Nós de conexão nos cantos (identidade "nexus") ────────────────
             const int NODE_R = 2;
             const int MARGIN = 4;
             using SolidBrush nodeBrush = new SolidBrush(cyanColor);
-
             DrawNode(g, nodeBrush, MARGIN,        MARGIN,        NODE_R);
             DrawNode(g, nodeBrush, SIZE - MARGIN,  MARGIN,        NODE_R);
             DrawNode(g, nodeBrush, MARGIN,         SIZE - MARGIN, NODE_R);
@@ -202,15 +363,14 @@ namespace RemoteServer
         private static void DrawNode(Graphics g, Brush brush, int cx, int cy, int r)
             => g.FillEllipse(brush, cx - r, cy - r, r * 2, r * 2);
 
-        /// <summary>Cria um GraphicsPath de retângulo com cantos arredondados.</summary>
         private static GraphicsPath RoundedRect(Rectangle b, int radius)
         {
             int d = radius * 2;
             var path = new GraphicsPath();
-            path.AddArc(b.X,              b.Y,               d, d, 180, 90);
-            path.AddArc(b.Right - d,      b.Y,               d, d, 270, 90);
-            path.AddArc(b.Right - d,      b.Bottom - d,      d, d,   0, 90);
-            path.AddArc(b.X,              b.Bottom - d,      d, d,  90, 90);
+            path.AddArc(b.X,         b.Y,          d, d, 180, 90);
+            path.AddArc(b.Right - d, b.Y,          d, d, 270, 90);
+            path.AddArc(b.Right - d, b.Bottom - d, d, d,   0, 90);
+            path.AddArc(b.X,         b.Bottom - d, d, d,  90, 90);
             path.CloseFigure();
             return path;
         }

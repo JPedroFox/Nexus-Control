@@ -5,12 +5,15 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.text.InputFilter;
+import android.text.InputType;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.chip.Chip;
@@ -46,21 +49,23 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
     private Button btnLock, btnRestart, btnShutdown;
     private Button btnProcessos, btnMouseKeyboard;
 
-    // ─── LÓGICA ───────────────────────────────────────────────────────────────
+    // ─── ESTADO ───────────────────────────────────────────────────────────────
     private boolean isConnected = false;
 
-    // Estático para ProcessListActivity e MouseKeyboardActivity reutilizarem a conexão
+    // Guardamos o PIN digitado para reconexões automáticas
+    private String lastPin = null;
+
     public static SocketClient socketClient;
 
-    // WeakReference evita memory leak
     private static WeakReference<MainActivity> instanceRef;
     public static MainActivity getInstance() {
         return instanceRef != null ? instanceRef.get() : null;
     }
 
-    // Para passar imagens ao ScreenshotViewer sem TransactionTooLargeException
     public static List<byte[]> pendingScreenshots = null;
     public static List<String> pendingLabels      = null;
+
+    // ─── LIFECYCLE ────────────────────────────────────────────────────────────
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,6 +79,12 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
         setupClickListeners();
         setControlsEnabled(false);
         updateRecentIpsUI();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (socketClient != null) socketClient.disconnect();
     }
 
     // ─── SETUP ────────────────────────────────────────────────────────────────
@@ -134,6 +145,7 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
 
     private void handleConnectToggle() {
         if (isConnected) {
+            lastPin = null;
             socketClient.disconnect();
             return;
         }
@@ -148,7 +160,9 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
 
         int portNumber = port.isEmpty() ? 8888 : Integer.parseInt(port);
         setStatus("Conectando em " + ip + ":" + portNumber + "...", false);
-        socketClient.connect(ip, portNumber);
+
+        // Conecta passando o PIN já conhecido (pode ser null se for primeira vez)
+        socketClient.connect(ip, portNumber, lastPin);
     }
 
     // ─── SOCKET LISTENER ─────────────────────────────────────────────────────
@@ -167,6 +181,28 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
     public void onDisconnected(String reason) {
         isConnected = false;
         setStatus("🔴 Desconectado: " + reason, false);
+        btnConnect.setText(R.string.btn_connect);
+        setControlsEnabled(false);
+    }
+
+    /**
+     * Servidor sinalizou que este dispositivo ainda não está autorizado.
+     * Exibe um dialog para o usuário digitar o PIN exibido no PC.
+     */
+    @Override
+    public void onPinRequired() {
+        setStatus("🔐 PIN necessário...", false);
+        showPinDialog();
+    }
+
+    /**
+     * O PIN enviado foi recusado pelo servidor.
+     */
+    @Override
+    public void onAuthFailed() {
+        lastPin = null;
+        setStatus("❌ PIN inválido. Conexão recusada.", false);
+        showToast("PIN incorreto. Verifique o código exibido no PC.");
         btnConnect.setText(R.string.btn_connect);
         setControlsEnabled(false);
     }
@@ -197,13 +233,64 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
 
     @Override
     public void onProcessListReceived(List<SocketClient.ProcessInfo> processos) {
-        // Roteado para ProcessListActivity via setListener() — não chega aqui normalmente
+        // Roteado para ProcessListActivity via setListener()
     }
 
     @Override
     public void onError(String message) {
         setStatus("❌ " + message, false);
         showToast(message);
+    }
+
+    // ─── DIALOG DE PIN ────────────────────────────────────────────────────────
+
+    /**
+     * Dialog estilizado para entrada do PIN de 6 dígitos.
+     * Ao confirmar, chama socketClient.submitPin() para autenticar.
+     * Ao cancelar, encerra a conexão.
+     */
+    private void showPinDialog() {
+        // Container do campo de PIN
+        LinearLayout container = new LinearLayout(this);
+        container.setOrientation(LinearLayout.VERTICAL);
+        container.setPadding(64, 32, 64, 8);
+
+        EditText etPin = new EditText(this);
+        etPin.setHint("000000");
+        etPin.setInputType(InputType.TYPE_CLASS_NUMBER);
+        etPin.setFilters(new InputFilter[]{ new InputFilter.LengthFilter(6) });
+        etPin.setTextSize(28f);
+        etPin.setLetterSpacing(0.4f);
+        etPin.setTextAlignment(TextView.TEXT_ALIGNMENT_CENTER);
+        etPin.setTextColor(Color.WHITE);
+        etPin.setHintTextColor(Color.GRAY);
+        etPin.setBackgroundTintList(
+                android.content.res.ColorStateList.valueOf(Color.parseColor("#00E5FF")));
+
+        container.addView(etPin);
+
+        new AlertDialog.Builder(this, R.style.PinDialogTheme)
+                .setTitle("🔐 PIN de Autenticação")
+                .setMessage("Digite o PIN de 6 dígitos exibido na janela do Nexus Control no PC.")
+                .setView(container)
+                .setCancelable(false)
+                .setPositiveButton("Conectar", (dialog, which) -> {
+                    String pin = etPin.getText().toString().trim();
+                    if (pin.length() != 6) {
+                        showToast("O PIN deve ter 6 dígitos.");
+                        // Reabre o dialog se o PIN for inválido
+                        onPinRequired();
+                        return;
+                    }
+                    lastPin = pin;
+                    setStatus("🔐 Autenticando...", false);
+                    socketClient.submitPin(pin);
+                })
+                .setNegativeButton("Cancelar", (dialog, which) -> {
+                    socketClient.disconnect();
+                    setStatus("🔴 Conexão cancelada", false);
+                })
+                .show();
     }
 
     // ─── HELPERS ──────────────────────────────────────────────────────────────
@@ -214,7 +301,7 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
     }
 
     private void confirmAndSend(String message, String command) {
-        new androidx.appcompat.app.AlertDialog.Builder(this)
+        new AlertDialog.Builder(this)
                 .setTitle("Confirmar")
                 .setMessage(message)
                 .setPositiveButton("Sim", (d, w) -> send(command))
@@ -247,10 +334,9 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
 
     private void saveRecentIp(String ip) {
         if (ip.isEmpty()) return;
-
         LinkedList<String> ips = new LinkedList<>(loadRecentIps());
-        ips.remove(ip);          // remove duplicata se existir
-        ips.addFirst(ip);        // coloca no topo (mais recente)
+        ips.remove(ip);
+        ips.addFirst(ip);
         while (ips.size() > MAX_RECENT_IPS) ips.removeLast();
 
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
@@ -291,13 +377,11 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
             chip.setCloseIconTint(android.content.res.ColorStateList.valueOf(
                     Color.parseColor("#334455")));
 
-            // Toque no chip: preenche o campo de IP
             chip.setOnClickListener(v -> {
                 etIp.setText(ip);
                 etIp.setSelection(ip.length());
             });
 
-            // X no chip: remove do histórico e atualiza a UI
             chip.setOnCloseIconClickListener(v -> {
                 SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
                 List<String> current = new ArrayList<>(loadRecentIps());
@@ -310,13 +394,5 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
 
             chipGroupRecentIps.addView(chip);
         }
-    }
-
-    // ─── LIFECYCLE ────────────────────────────────────────────────────────────
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (socketClient != null) socketClient.disconnect();
     }
 }

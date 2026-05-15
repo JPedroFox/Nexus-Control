@@ -134,4 +134,15 @@ public class ProcessListActivity extends AppCompatActivity
         if (MainActivity.getInstance() != null)
             MainActivity.socketClient.setListener(MainActivity.getInstance());
     }
+    @Override
+    public void onPinRequired() {
+        Toast.makeText(this, "Sessão expirada. Reconecte na tela principal.", Toast.LENGTH_LONG).show();
+        finish();
+    }
+
+    @Override
+    public void onAuthFailed() {
+        Toast.makeText(this, "Autenticação falhou. Reconecte na tela principal.", Toast.LENGTH_LONG).show();
+        finish();
+    }
 }

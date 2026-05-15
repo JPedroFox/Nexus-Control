@@ -1,9 +1,32 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <!-- Base application theme. -->
     <style name="Base.Theme.RemoteControl" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>
+
+    <!-- Adicionar dentro de <resources> no seu res/values/styles.xml (ou themes.xml) -->
+
+    <!-- Tema escuro para o dialog de PIN de autenticação -->
+    <style name="PinDialogTheme" parent="Theme.AppCompat.Dialog.Alert">
+        <item name="android:background">#0D0D1A</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textColorPrimary">#FFFFFF</item>
+        <item name="android:textColorSecondary">#AAAAAA</item>
+        <item name="colorAccent">#00E5FF</item>
+        <item name="buttonBarPositiveButtonStyle">@style/PinDialogPositiveButton</item>
+        <item name="buttonBarNegativeButtonStyle">@style/PinDialogNegativeButton</item>
+    </style>
+
+    <style name="PinDialogPositiveButton" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
+        <item name="android:textColor">#00E5FF</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="PinDialogNegativeButton" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
+        <item name="android:textColor">#FF5252</item>
+    </style>
+
 
     <style name="Theme.RemoteControl" parent="Base.Theme.RemoteControl" />
 </resources>

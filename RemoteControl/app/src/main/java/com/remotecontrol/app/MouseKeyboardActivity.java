@@ -184,4 +184,17 @@ public class MouseKeyboardActivity extends AppCompatActivity
         if (instance != null)
             MainActivity.socketClient.setListener(instance);
     }
+    @Override
+    public void onPinRequired() {
+        // Não deve ocorrer aqui: autenticação é responsabilidade da MainActivity.
+        // Se chegar, é porque houve reconexão inesperada — volta para a tela anterior.
+        Toast.makeText(this, "Sessão expirada. Reconecte na tela principal.", Toast.LENGTH_LONG).show();
+        finish();
+    }
+
+    @Override
+    public void onAuthFailed() {
+        Toast.makeText(this, "Autenticação falhou. Reconecte na tela principal.", Toast.LENGTH_LONG).show();
+        finish();
+    }
 }
