@@ -15,78 +15,83 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+  <group android:scaleX="0.77"
+      android:scaleY="0.77"
+      android:translateX="12.42"
+      android:translateY="12.42">
 
-    <!--
-        Linhas de conexão entre os 4 nós (fundo sutil)
-        Ficam atrás do N, em cyan com ~25% de opacidade.
-        Os 4 nós estão em: (30,30) (78,30) (30,78) (78,78)
-    -->
-    <path
-        android:strokeColor="#4000E5FF"
-        android:strokeWidth="2"
-        android:fillColor="#00000000"
-        android:pathData="
-            M30,30 L78,30
-            M30,78 L78,78
-            M30,30 L30,78
-            M78,30 L78,78" />
+      <!--
+          Linhas de conexão entre os 4 nós (fundo sutil)
+          Ficam atrás do N, em cyan com ~25% de opacidade.
+          Os 4 nós estão em: (30,30) (78,30) (30,78) (78,78)
+      -->
+      <path
+          android:strokeColor="#4000E5FF"
+          android:strokeWidth="2"
+          android:fillColor="#00000000"
+          android:pathData="
+              M30,30 L78,30
+              M30,78 L78,78
+              M30,30 L30,78
+              M78,30 L78,78" />
 
-    <!--
-        Letra N — bold, ocupa a zona segura (de ~27 a ~81 em cada eixo)
+      <!--
+          Letra N — bold, ocupa a zona segura (de ~27 a ~81 em cada eixo)
 
-        Anatomia do N:
-          • Barra esquerda:  x 27–40,  y 25–83
-          • Diagonal:        de (40,25) desce para (68,83), largura 12
-          • Barra direita:   x 68–81,  y 25–83
+          Anatomia do N:
+            • Barra esquerda:  x 27–40,  y 25–83
+            • Diagonal:        de (40,25) desce para (68,83), largura 12
+            • Barra direita:   x 68–81,  y 25–83
 
-        Path fechado (sentido horário):
-          Começa no canto superior-esquerdo da barra esquerda,
-          desce pela barra esquerda, sobe pela diagonal,
-          desce pela barra direita, sobe pela diagonal de volta.
-    -->
-    <path
-        android:fillColor="#00E5FF"
-        android:pathData="
-            M27,25 L27,83 L40,83 L40,51 L68,83 L81,83 L81,25 L68,25 L68,57 L40,25 Z" />
+          Path fechado (sentido horário):
+            Começa no canto superior-esquerdo da barra esquerda,
+            desce pela barra esquerda, sobe pela diagonal,
+            desce pela barra direita, sobe pela diagonal de volta.
+      -->
+      <path
+          android:fillColor="#00E5FF"
+          android:pathData="
+              M27,25 L27,83 L40,83 L40,51 L68,83 L81,83 L81,25 L68,25 L68,57 L40,25 Z" />
 
-    <!--
-        Nó superior-esquerdo  — centro (30, 30), raio 6
-        M cx,cy  m -r,0  a r,r 0 1,0 2r,0  a r,r 0 1,0 -2r,0
-    -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M30,30 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0" />
+      <!--
+          Nó superior-esquerdo  — centro (30, 30), raio 6
+          M cx,cy  m -r,0  a r,r 0 1,0 2r,0  a r,r 0 1,0 -2r,0
+      -->
+      <path
+          android:fillColor="#FFFFFF"
+          android:pathData="M30,30 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0" />
 
-    <!-- Nó superior-direito  — centro (78, 30) -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M78,30 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0" />
+      <!-- Nó superior-direito  — centro (78, 30) -->
+      <path
+          android:fillColor="#FFFFFF"
+          android:pathData="M78,30 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0" />
 
-    <!-- Nó inferior-esquerdo — centro (30, 78) -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M30,78 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0" />
+      <!-- Nó inferior-esquerdo — centro (30, 78) -->
+      <path
+          android:fillColor="#FFFFFF"
+          android:pathData="M30,78 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0" />
 
-    <!-- Nó inferior-direito  — centro (78, 78) -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M78,78 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0" />
+      <!-- Nó inferior-direito  — centro (78, 78) -->
+      <path
+          android:fillColor="#FFFFFF"
+          android:pathData="M78,78 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0" />
 
-    <!--
-        Miolo dos nós em cyan escuro — cria o efeito de "anel" branco com centro escuro.
-        Mesmo centro, raio 3.
-    -->
-    <path
-        android:fillColor="#0A0A0F"
-        android:pathData="M30,30 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
-    <path
-        android:fillColor="#0A0A0F"
-        android:pathData="M78,30 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
-    <path
-        android:fillColor="#0A0A0F"
-        android:pathData="M30,78 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
-    <path
-        android:fillColor="#0A0A0F"
-        android:pathData="M78,78 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
+      <!--
+          Miolo dos nós em cyan escuro — cria o efeito de "anel" branco com centro escuro.
+          Mesmo centro, raio 3.
+      -->
+      <path
+          android:fillColor="#0A0A0F"
+          android:pathData="M30,30 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
+      <path
+          android:fillColor="#0A0A0F"
+          android:pathData="M78,30 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
+      <path
+          android:fillColor="#0A0A0F"
+          android:pathData="M30,78 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
+      <path
+          android:fillColor="#0A0A0F"
+          android:pathData="M78,78 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
 
+  </group>
 </vector>
