@@ -24,19 +24,26 @@ No cloud. No pairing service. No Bluetooth. Just your Wi-Fi, a socket, and direc
 
 ---
 
-## 📱 Screenshots
+## Screenshots
 
-<div align="center">
-
-| Main Control Panel | Connection Info | Touchpad Control |
-|---|---|---|
-| ![Main Control](./assets/screenshots/01-main-control.jpg) | ![Connection](./assets/screenshots/02-connection-info.jpg) | ![Touchpad](./assets/screenshots/03-touchpad.jpg) |
-
-| Authentication | | |
-|---|---|---|
-| ![PIN Auth](./assets/screenshots/04-pin-auth.jpg) | | |
-
-</div>
+<table>
+  <tr>
+    <td align="center"><b>Android — Main Screen</b></td>
+    <td align="center"><b>Android — PIN Auth</b></td>
+  </tr>
+  <tr>
+    <td><img src="assets/mainAPP.jpg" width="260"/></td>
+    <td><img src="assets/pinAPP.jpg" width="260"/></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Android — Mouse & Keyboard</b></td>
+    <td align="center"><b>Windows — Connection Info</b></td>
+  </tr>
+  <tr>
+    <td><img src="assets/MouseKeyboard.jpg" width="260"/></td>
+    <td><img src="assets/mainServer.png" width="260"/></td>
+  </tr>
+</table>
 
 ---
 
@@ -44,15 +51,15 @@ No cloud. No pairing service. No Bluetooth. Just your Wi-Fi, a socket, and direc
 
 ```
 ┌─────────────────────────────────┐        ┌───────────────────────────────────┐
-│        Android App (Java)        │        │      Windows Server (C#/.NET)      │
+│        Android App (Java)       │        │      Windows Server (C#/.NET)     │
 │                                 │        │                                   │
 │  MainActivity                   │  TCP   │  SocketServer                     │
 │  ├─ SocketClient ───────────────┼───────▶│  └─ HandleClient (thread/client)  │
-│  ├─ CommandBuilder (JSON)       │        │     └─ CommandExecutor             │
-│  ├─ MouseKeyboardActivity       │        │        ├─ Win32 SendInput          │
-│  ├─ ProcessListActivity         │◀───────┼─────── ├─ NAudio (volume)          │
-│  └─ ScreenshotViewer            │  JSON  │        ├─ GDI+ (screenshot)        │
-│                                 │        │        └─ Process API              │
+│  ├─ CommandBuilder (JSON)       │        │     └─ CommandExecutor            │
+│  ├─ MouseKeyboardActivity       │        │        ├─ Win32 SendInput         │
+│  ├─ ProcessListActivity         │◀───────┼─────── ├─ NAudio (volume)         │
+│  └─ ScreenshotViewer            │  JSON  │        ├─ GDI+ (screenshot)       │
+│                                 │        │        └─ Process API             │
 └─────────────────────────────────┘        └───────────────────────────────────┘
 ```
 
@@ -60,18 +67,18 @@ The Android side **sends JSON commands** → the C# side **parses, executes, and
 
 ---
 
-## ✨ Features
+## Features
 
-| Category | Commands | Status |
-|---|---|:---:|
-| 🔊 **Volume** | Volume Up / Down / Mute | ✅ |
-| 🎵 **Media** | Play/Pause, Next, Prev, Skip ±10s | ✅ |
-| 📸 **Screenshot** | Capture all monitors → JPEG → Base64 → view on phone with pinch-zoom | ✅ |
-| ⚙️ **Processes** | List all running processes, search by name, force-kill | ✅ |
-| 🖱️ **Mouse** | Touchpad with 1-finger move, 2-finger scroll, tap/double-tap, drag | ✅ |
-| ⌨️ **Keyboard** | Type any text, special keys (Esc, Tab, Enter, Win, arrows, etc.) | ✅ |
-| 💻 **System** | Lock workstation, Restart, Shutdown | ✅ |
-| 🔐 **Security** | PIN-based session authentication | ✅ |
+| Category | Commands |
+|---|---|
+| 🔊 **Volume** | Volume Up / Down / Mute |
+| 🎵 **Media** | Play/Pause, Next, Prev, Skip ±10s |
+| 📸 **Screenshot** | Capture all monitors → JPEG → Base64 → view on phone with pinch-zoom |
+| ⚙️ **Processes** | List all running processes, search by name, force-kill |
+| 🖱️ **Mouse** | Touchpad with 1-finger move, 2-finger scroll, tap/double-tap, drag |
+| ⌨️ **Keyboard** | Type any text, special keys (Esc, Tab, Enter, Win, arrows, etc.) |
+| 💻 **System** | Lock workstation, Restart, Shutdown |
+| 🔐 **PIN Auth** | Session PIN generated on server startup — expires when the server closes |
 
 ---
 
@@ -80,16 +87,19 @@ The Android side **sends JSON commands** → the C# side **parses, executes, and
 ### Connection flow
 
 ```
-Android                          Windows
-   │                                │
-   │──── TCP connect :8888 ─────────▶│
-   │                                 │  TcpListener.AcceptTcpClient()
-   │◀─── {"status":"CONNECTED"} ────│  Handshake
-   │                                 │
-   │──── {"cmd":"MEDIA","acao":"VOLUME_UP"} ──▶│
-   │◀─── {"status":"OK","msg":"Volume up: 65%"} │
-   │                                 │
-   │──── {"cmd":"SCREENSHOT"} ──────▶│
+Android                                                      Windows
+   │                                                            │
+   │──── TCP connect :8888 ───────────────────────────────────▶│
+   │                                                           │  TcpListener.AcceptTcpClient()
+   │◀────────────────────────────────── {"status":"CONNECTED"} │  Handshake
+   │                                                           │
+   │ {"cmd":"AUTH","pin":"937699"} ───────────────────────────▶│  PIN verification
+   │◀───────────────────────────────────────── {"status":"OK"} │  Granted
+   │                                                           │
+   │ {"cmd":"MEDIA","acao":"VOLUME_UP"} ──────────────────────▶│
+   │◀────────────────── {"status":"OK","msg":"Volume up: 65%"} │
+   │                                                           │
+   │ {"cmd":"SCREENSHOT"} ────────────────────────────────────▶│
    │◀─── {"status":"OK","capturas":[{"dados":"...base64..."}]} │
 ```
 
@@ -130,6 +140,12 @@ Lower latency for mouse movement (which fires dozens of packets per second). A p
 
 ```
 nexus-control/
+│
+├── assets/                  # Screenshots for README
+│   ├── mainAPP.jpg
+│   ├── pinAPP.jpg
+│   ├── MouseKeyboard.jpg
+│   └── mainServer.png
 │
 ├── server/                  # C# .NET Windows app
 │   ├── Program.cs           # Entry point, DPI awareness, WinForms bootstrap
@@ -185,7 +201,7 @@ The `.bat` script will:
 2. Compile and publish a self-contained `NexusControl.exe` to `/dist`
 3. Open the output folder automatically
 
-> The app runs silently in the **system tray** (near the clock). Right-click for IP, port, and exit.
+> The app runs silently in the **system tray** (near the clock). Double-click the tray icon to see your IP, port, and session PIN.
 
 ---
 
@@ -208,9 +224,11 @@ Or build via Gradle:
 ### Connecting
 
 1. Make sure your PC and Android are on the **same Wi-Fi network**
-2. Launch `NexusControl.exe` on Windows — it shows your local IP in the tray menu
-3. Open the Android app, type the PC's IP (e.g. `192.168.1.100`) and port `8888`
-4. Tap **CONNECT**
+2. Launch `NexusControl.exe` on Windows — double-click the tray icon to see your IP, port, and **6-digit PIN**
+3. Open the Android app, type the PC's IP and port `8888`, tap **CONNECT**
+4. Enter the PIN shown on the PC when prompted — connection is granted instantly
+
+> The PIN is generated fresh every time the server starts and expires when it closes. No one else on your network can connect without it.
 
 ---
 
@@ -230,14 +248,11 @@ Or build via Gradle:
 
 ## Roadmap
 
-- [x] PIN-based session authentication
 - [ ] AES-encrypted socket channel
-- [ ] Persistent pairing with key exchange
 - [ ] Clipboard sync (copy on phone → paste on PC)
 - [ ] File transfer
 - [ ] Wake-on-LAN support
 - [ ] Multi-client: let more than one phone connect simultaneously
-- [ ] Custom command shortcuts
 
 ---
 
