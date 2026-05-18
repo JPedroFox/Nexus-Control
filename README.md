@@ -24,6 +24,22 @@ No cloud. No pairing service. No Bluetooth. Just your Wi-Fi, a socket, and direc
 
 ---
 
+## 📱 Screenshots
+
+<div align="center">
+
+| Main Control Panel | Connection Info | Touchpad Control |
+|---|---|---|
+| ![Main Control](./assets/screenshots/01-main-control.jpg) | ![Connection](./assets/screenshots/02-connection-info.jpg) | ![Touchpad](./assets/screenshots/03-touchpad.jpg) |
+
+| Authentication | | |
+|---|---|---|
+| ![PIN Auth](./assets/screenshots/04-pin-auth.jpg) | | |
+
+</div>
+
+---
+
 ## Architecture Overview
 
 ```
@@ -44,17 +60,18 @@ The Android side **sends JSON commands** → the C# side **parses, executes, and
 
 ---
 
-## Features
+## ✨ Features
 
-| Category | Commands |
-|---|---|
-| 🔊 **Volume** | Volume Up / Down / Mute |
-| 🎵 **Media** | Play/Pause, Next, Prev, Skip ±10s |
-| 📸 **Screenshot** | Capture all monitors → JPEG → Base64 → view on phone with pinch-zoom |
-| ⚙️ **Processes** | List all running processes, search by name, force-kill |
-| 🖱️ **Mouse** | Touchpad with 1-finger move, 2-finger scroll, tap/double-tap, drag |
-| ⌨️ **Keyboard** | Type any text, special keys (Esc, Tab, Enter, Win, arrows, etc.) |
-| 💻 **System** | Lock workstation, Restart, Shutdown |
+| Category | Commands | Status |
+|---|---|:---:|
+| 🔊 **Volume** | Volume Up / Down / Mute | ✅ |
+| 🎵 **Media** | Play/Pause, Next, Prev, Skip ±10s | ✅ |
+| 📸 **Screenshot** | Capture all monitors → JPEG → Base64 → view on phone with pinch-zoom | ✅ |
+| ⚙️ **Processes** | List all running processes, search by name, force-kill | ✅ |
+| 🖱️ **Mouse** | Touchpad with 1-finger move, 2-finger scroll, tap/double-tap, drag | ✅ |
+| ⌨️ **Keyboard** | Type any text, special keys (Esc, Tab, Enter, Win, arrows, etc.) | ✅ |
+| 💻 **System** | Lock workstation, Restart, Shutdown | ✅ |
+| 🔐 **Security** | PIN-based session authentication | ✅ |
 
 ---
 
@@ -213,12 +230,14 @@ Or build via Gradle:
 
 ## Roadmap
 
-- [ ] PIN-based pairing (don't let anyone on the LAN connect)
+- [x] PIN-based session authentication
 - [ ] AES-encrypted socket channel
+- [ ] Persistent pairing with key exchange
 - [ ] Clipboard sync (copy on phone → paste on PC)
 - [ ] File transfer
 - [ ] Wake-on-LAN support
 - [ ] Multi-client: let more than one phone connect simultaneously
+- [ ] Custom command shortcuts
 
 ---
 

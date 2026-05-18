@@ -49,10 +49,10 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
     private Button btnLock, btnRestart, btnShutdown;
     private Button btnProcessos, btnMouseKeyboard;
 
-    // ─── ESTADO ───────────────────────────────────────────────────────────────
+    // ─── STATE ────────────────────────────────────────────────────────────────
     private boolean isConnected = false;
 
-    // Guardamos o PIN digitado para reconexões automáticas
+    // Saved PIN for automatic reconnections
     private String lastPin = null;
 
     public static SocketClient socketClient;
@@ -90,11 +90,11 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
     // ─── SETUP ────────────────────────────────────────────────────────────────
 
     private void bindViews() {
-        etIp             = findViewById(R.id.etIp);
-        etPort           = findViewById(R.id.etPort);
-        btnConnect       = findViewById(R.id.btnConnect);
-        tvStatus         = findViewById(R.id.tvStatus);
-        layoutRecentIps  = findViewById(R.id.layoutRecentIps);
+        etIp               = findViewById(R.id.etIp);
+        etPort             = findViewById(R.id.etPort);
+        btnConnect         = findViewById(R.id.btnConnect);
+        tvStatus           = findViewById(R.id.tvStatus);
+        layoutRecentIps    = findViewById(R.id.layoutRecentIps);
         chipGroupRecentIps = findViewById(R.id.chipGroupRecentIps);
 
         btnVolUp         = findViewById(R.id.btnVolUp);
@@ -117,31 +117,31 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
     }
 
     private void setupClickListeners() {
-        btnConnect.setOnClickListener(v    -> handleConnectToggle());
+        btnConnect.setOnClickListener(v      -> handleConnectToggle());
 
-        btnVolUp.setOnClickListener(v      -> send(CommandBuilder.volumeUp()));
-        btnVolDown.setOnClickListener(v    -> send(CommandBuilder.volumeDown()));
-        btnMute.setOnClickListener(v       -> send(CommandBuilder.mute()));
+        btnVolUp.setOnClickListener(v        -> send(CommandBuilder.volumeUp()));
+        btnVolDown.setOnClickListener(v      -> send(CommandBuilder.volumeDown()));
+        btnMute.setOnClickListener(v         -> send(CommandBuilder.mute()));
 
-        btnPlay.setOnClickListener(v       -> send(CommandBuilder.playPause()));
-        btnNext.setOnClickListener(v       -> send(CommandBuilder.nextTrack()));
-        btnPrev.setOnClickListener(v       -> send(CommandBuilder.prevTrack()));
+        btnPlay.setOnClickListener(v         -> send(CommandBuilder.playPause()));
+        btnNext.setOnClickListener(v         -> send(CommandBuilder.nextTrack()));
+        btnPrev.setOnClickListener(v         -> send(CommandBuilder.prevTrack()));
         btnSkipForward.setOnClickListener(v  -> send(CommandBuilder.skipForward()));
         btnSkipBackward.setOnClickListener(v -> send(CommandBuilder.skipBackward()));
 
-        btnScreenshot.setOnClickListener(v -> send(CommandBuilder.screenshot()));
+        btnScreenshot.setOnClickListener(v   -> send(CommandBuilder.screenshot()));
 
-        btnLock.setOnClickListener(v       -> send(CommandBuilder.lock()));
-        btnRestart.setOnClickListener(v    -> confirmAndSend("Reiniciar o PC?", CommandBuilder.restart()));
-        btnShutdown.setOnClickListener(v   -> confirmAndSend("Desligar o PC?",  CommandBuilder.shutdown()));
+        btnLock.setOnClickListener(v         -> send(CommandBuilder.lock()));
+        btnRestart.setOnClickListener(v      -> confirmRestart());
+        btnShutdown.setOnClickListener(v     -> confirmShutdown());
 
-        btnProcessos.setOnClickListener(v  ->
+        btnProcessos.setOnClickListener(v    ->
                 startActivity(new Intent(this, ProcessListActivity.class)));
         btnMouseKeyboard.setOnClickListener(v ->
                 startActivity(new Intent(this, MouseKeyboardActivity.class)));
     }
 
-    // ─── CONEXÃO ──────────────────────────────────────────────────────────────
+    // ─── CONNECTION ───────────────────────────────────────────────────────────
 
     private void handleConnectToggle() {
         if (isConnected) {
@@ -154,14 +154,14 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
         String port = etPort.getText().toString().trim();
 
         if (ip.isEmpty()) {
-            showToast("Digite o IP do PC");
+            showToast("Enter the PC's IP address");
             return;
         }
 
         int portNumber = port.isEmpty() ? 8888 : Integer.parseInt(port);
-        setStatus("Conectando em " + ip + ":" + portNumber + "...", false);
+        setStatus("● Connecting to " + ip + ":" + portNumber + "…", false);
 
-        // Conecta passando o PIN já conhecido (pode ser null se for primeira vez)
+        // Connect passing the already-known PIN (may be null on first attempt)
         socketClient.connect(ip, portNumber, lastPin);
     }
 
@@ -172,7 +172,7 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
         isConnected = true;
         saveRecentIp(etIp.getText().toString().trim());
         updateRecentIpsUI();
-        setStatus("✅ Conectado", true);
+        setStatus("✅ Connected", true);
         btnConnect.setText(R.string.btn_disconnect);
         setControlsEnabled(true);
     }
@@ -180,29 +180,24 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
     @Override
     public void onDisconnected(String reason) {
         isConnected = false;
-        setStatus("🔴 Desconectado: " + reason, false);
+        setStatus("🔴 Disconnected: " + reason, false);
         btnConnect.setText(R.string.btn_connect);
         setControlsEnabled(false);
     }
 
-    /**
-     * Servidor sinalizou que este dispositivo ainda não está autorizado.
-     * Exibe um dialog para o usuário digitar o PIN exibido no PC.
-     */
+    /** Server signalled that this device is not yet authorised — show PIN dialog. */
     @Override
     public void onPinRequired() {
-        setStatus("🔐 PIN necessário...", false);
+        setStatus("🔐 PIN required…", false);
         showPinDialog();
     }
 
-    /**
-     * O PIN enviado foi recusado pelo servidor.
-     */
+    /** The PIN sent was rejected by the server. */
     @Override
     public void onAuthFailed() {
         lastPin = null;
-        setStatus("❌ PIN inválido. Conexão recusada.", false);
-        showToast("PIN incorreto. Verifique o código exibido no PC.");
+        setStatus("❌ Invalid PIN. Connection refused.", false);
+        showToast("Incorrect PIN. Check the code shown on the PC.");
         btnConnect.setText(R.string.btn_connect);
         setControlsEnabled(false);
     }
@@ -215,7 +210,7 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
             String msg     = obj.has("msg") ? obj.get("msg").getAsString() : "";
             setStatus("OK".equals(status) ? "✅ " + msg : "⚠️ " + msg, "OK".equals(status));
         } catch (Exception e) {
-            setStatus("Resposta: " + json, true);
+            setStatus("Response: " + json, true);
         }
     }
 
@@ -228,12 +223,12 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
             pendingLabels.add(c.label());
         }
         startActivity(new Intent(this, ScreenshotViewer.class));
-        setStatus("📸 " + capturas.size() + " monitor(es) capturado(s)", true);
+        setStatus("📸 " + capturas.size() + " monitor(s) captured", true);
     }
 
     @Override
     public void onProcessListReceived(List<SocketClient.ProcessInfo> processos) {
-        // Roteado para ProcessListActivity via setListener()
+        // Routed to ProcessListActivity via setListener() — not expected here
     }
 
     @Override
@@ -242,15 +237,14 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
         showToast(message);
     }
 
-    // ─── DIALOG DE PIN ────────────────────────────────────────────────────────
+    // ─── PIN DIALOG ───────────────────────────────────────────────────────────
 
     /**
-     * Dialog estilizado para entrada do PIN de 6 dígitos.
-     * Ao confirmar, chama socketClient.submitPin() para autenticar.
-     * Ao cancelar, encerra a conexão.
+     * Styled dialog for entering the 6-digit PIN displayed on the PC.
+     * On confirm → calls socketClient.submitPin().
+     * On cancel  → disconnects.
      */
     private void showPinDialog() {
-        // Container do campo de PIN
         LinearLayout container = new LinearLayout(this);
         container.setOrientation(LinearLayout.VERTICAL);
         container.setPadding(64, 32, 64, 8);
@@ -270,43 +264,64 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
         container.addView(etPin);
 
         new AlertDialog.Builder(this, R.style.PinDialogTheme)
-                .setTitle("🔐 PIN de Autenticação")
-                .setMessage("Digite o PIN de 6 dígitos exibido na janela do Nexus Control no PC.")
+                .setTitle("🔐 Authentication PIN")
+                .setMessage("Enter the 6-digit PIN shown in the Nexus Control window on your PC.")
                 .setView(container)
                 .setCancelable(false)
-                .setPositiveButton("Conectar", (dialog, which) -> {
+                .setPositiveButton("Connect", (dialog, which) -> {
                     String pin = etPin.getText().toString().trim();
                     if (pin.length() != 6) {
-                        showToast("O PIN deve ter 6 dígitos.");
-                        // Reabre o dialog se o PIN for inválido
+                        showToast("PIN must be 6 digits.");
+                        // Re-open the dialog if the PIN is invalid
                         onPinRequired();
                         return;
                     }
                     lastPin = pin;
-                    setStatus("🔐 Autenticando...", false);
+                    setStatus("🔐 Authenticating…", false);
                     socketClient.submitPin(pin);
                 })
-                .setNegativeButton("Cancelar", (dialog, which) -> {
+                .setNegativeButton("Cancel", (dialog, which) -> {
                     socketClient.disconnect();
-                    setStatus("🔴 Conexão cancelada", false);
+                    setStatus("🔴 Connection cancelled", false);
                 })
+                .show();
+    }
+
+    // ─── CONFIRMATION DIALOGS ─────────────────────────────────────────────────
+
+    /**
+     * Asks the user to confirm before sending a restart command.
+     * The PC will reboot after a 5-second delay (as defined in the server).
+     */
+    private void confirmRestart() {
+        new AlertDialog.Builder(this)
+                .setTitle("🔄 Restart PC")
+                .setMessage("Are you sure you want to restart the PC?\n\nThe system will reboot in 5 seconds.")
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setPositiveButton("Yes, restart", (d, w) -> send(CommandBuilder.restart()))
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    /**
+     * Asks the user to confirm before sending a shutdown command.
+     * The PC will power off after a 5-second delay (as defined in the server).
+     */
+    private void confirmShutdown() {
+        new AlertDialog.Builder(this)
+                .setTitle("⛔ Shut Down PC")
+                .setMessage("Are you sure you want to shut down the PC?\n\nThe system will power off in 5 seconds.\nMake sure all work is saved.")
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setPositiveButton("Yes, shut down", (d, w) -> send(CommandBuilder.shutdown()))
+                .setNegativeButton("Cancel", null)
                 .show();
     }
 
     // ─── HELPERS ──────────────────────────────────────────────────────────────
 
     private void send(String command) {
-        if (!isConnected) { showToast("Não conectado"); return; }
+        if (!isConnected) { showToast("Not connected"); return; }
         socketClient.send(command);
-    }
-
-    private void confirmAndSend(String message, String command) {
-        new AlertDialog.Builder(this)
-                .setTitle("Confirmar")
-                .setMessage(message)
-                .setPositiveButton("Sim", (d, w) -> send(command))
-                .setNegativeButton("Cancelar", null)
-                .show();
     }
 
     private void setStatus(String message, boolean ok) {
@@ -330,7 +345,7 @@ public class MainActivity extends AppCompatActivity implements SocketClient.Sock
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
 
-    // ─── IPs RECENTES ─────────────────────────────────────────────────────────
+    // ─── RECENT IPs ───────────────────────────────────────────────────────────
 
     private void saveRecentIp(String ip) {
         if (ip.isEmpty()) return;
