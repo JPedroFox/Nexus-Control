@@ -21,6 +21,9 @@ namespace RemoteServer
         private readonly ToolStripMenuItem _statusItem;
         private readonly ToolStripMenuItem _pinItem;
 
+        // Reference to the PIN label inside the currently open info dialog (null when closed)
+        private Label? _infoPinLabel;
+
         public TrayManager(SocketServer server)
         {
             _server = server;
@@ -112,7 +115,7 @@ namespace RemoteServer
                 BackColor       = Color.FromArgb(13, 13, 26),
                 ForeColor       = Color.White,
                 Width           = 360,
-                Height          = 310,
+                Height          = 340,
                 ShowInTaskbar   = true,
             };
 
@@ -171,12 +174,13 @@ namespace RemoteServer
             foreach (Control c in rows) dlg.Controls.Add(c);
             dlg.Controls.Add(btnOk);
             dlg.AcceptButton = btnOk;
+            dlg.FormClosed += (_, _) => _infoPinLabel = null;
 
             dlg.ShowDialog();
         }
 
         /// <summary>Builds the IP / Port / PIN label rows inside the info window.</summary>
-        private static Control[] BuildInfoRows(int startY, string ip, string pin, out int finalY)
+        private Control[] BuildInfoRows(int startY, string ip, string pin, out int finalY)
         {
             var controls = new System.Collections.Generic.List<Control>();
             int y = startY;
@@ -235,6 +239,7 @@ namespace RemoteServer
             controls.Add(l3); controls.Add(v3); y += 36;
 
             finalY = y;
+            _infoPinLabel = v3;   // store reference so UpdatePin can reach it
             return controls.ToArray();
         }
 
@@ -267,7 +272,7 @@ namespace RemoteServer
         /// Updates the PIN menu item and shows a balloon tip with the new code.
         /// Called from the server thread — marshals to the UI thread.
         /// </summary>
-        private void UpdatePin(string newPin)
+       private void UpdatePin(string newPin)
         {
             if (_menu.InvokeRequired)
             {
@@ -276,6 +281,10 @@ namespace RemoteServer
             }
 
             _pinItem.Text = $"PIN: {newPin}";
+
+            // ← UPDATE AQUI: atualiza o label dentro da janela se ela estiver aberta
+            if (_infoPinLabel != null && !_infoPinLabel.IsDisposed)
+                _infoPinLabel.Text = newPin;
 
             _trayIcon.ShowBalloonTip(
                 timeout:  5000,

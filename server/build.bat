@@ -21,13 +21,9 @@ for /f "tokens=*" %%v in ('dotnet --version') do set DOTNET_VER=%%v
 echo .NET SDK: v%DOTNET_VER%
 echo.
 
-:: Capture the bat directory WITHOUT trailing backslash and WITHOUT quotes
-:: %~dp0 ends with \ — the TrimEnd in PS handles it, but we pass without quotes
-:: to avoid the bug where \ escapes the closing quote in cmd
 set PROJ_DIR=%~dp0
 set PROJ_DIR=%PROJ_DIR:~0,-1%
 
-:: Kill any running instance to avoid UnauthorizedAccessException during publish
 echo Checking for running process...
 tasklist /fi "imagename eq NexusControl.exe" 2>nul | find /i "NexusControl.exe" >nul
 if %errorlevel% equ 0 (
